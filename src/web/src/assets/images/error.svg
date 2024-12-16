@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" 
+    xmlns="http://www.w3.org/2000/svg" 
+    role="img" 
+    aria-label="Error illustration"
+    preserveAspectRatio="xMidYMid meet">
+    
+    <!-- Metadata for accessibility and SEO -->
+    <title>Error State Illustration</title>
+    <desc>Visual representation of an error or failure state</desc>
+
+    <!-- Background circle with animation -->
+    <circle cx="120" cy="120" r="100" 
+        fill="var(--color-error-light, #ffebee)" 
+        opacity="0.2">
+        <animate attributeName="opacity"
+            values="0.2;0.3;0.2"
+            dur="2s"
+            repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Error icon outer circle -->
+    <circle cx="120" cy="120" r="80" 
+        fill="var(--color-error-light, #ffebee)" 
+        opacity="0.6"/>
+
+    <!-- Main error icon -->
+    <g fill="var(--color-error, #f44336)">
+        <!-- Exclamation mark circle -->
+        <path d="M120 60c-33.137 0-60 26.863-60 60s26.863 60 60 60 60-26.863 60-60-26.863-60-60-60zm0 110c-27.614 0-50-22.386-50-50s22.386-50 50-50 50 22.386 50 50-22.386 50-50 50z"/>
+        
+        <!-- Exclamation mark body -->
+        <path d="M115 90v40c0 2.761 2.239 5 5 5s5-2.239 5-5V90c0-2.761-2.239-5-5-5s-5 2.239-5 5z"/>
+        
+        <!-- Exclamation mark dot -->
+        <circle cx="120" cy="150" r="5"/>
+    </g>
+
+    <!-- Decorative elements -->
+    <g opacity="0.4" fill="var(--color-error, #f44336)">
+        <!-- Top right decorative circle -->
+        <circle cx="180" cy="80" r="4">
+            <animate attributeName="opacity"
+                values="0.4;0.6;0.4"
+                dur="1.5s"
+                repeatCount="indefinite"/>
+        </circle>
+        
+        <!-- Bottom left decorative circle -->
+        <circle cx="60" cy="160" r="4">
+            <animate attributeName="opacity"
+                values="0.4;0.6;0.4"
+                dur="1.5s"
+                repeatCount="indefinite"
+                begin="0.75s"/>
+        </circle>
+    </g>
+
+    <!-- High contrast mode support -->
+    <style>
+        @media (forced-colors: active) {
+            circle, path {
+                forced-color-adjust: none;
+            }
+        }
+        @media (prefers-color-scheme: dark) {
+            circle[opacity="0.2"] {
+                fill: var(--color-error-light, #621b16);
+            }
+            circle[opacity="0.6"] {
+                fill: var(--color-error-light, #621b16);
+            }
+        }
+    </style>
+</svg>
