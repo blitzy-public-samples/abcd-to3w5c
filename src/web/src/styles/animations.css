@@ -1,0 +1,206 @@
+/* ==========================================================================
+   Core Animation System - Habit Tracking Web Application
+   Performance-optimized animations with accessibility considerations
+   ========================================================================== */
+
+/* Import global variables */
+@import './variables.css';
+
+/* ==========================================================================
+   Animation Timing Variables
+   Consistent animation durations and easing functions
+   ========================================================================== */
+:root {
+  --animation-duration-fast: 150ms;
+  --animation-duration-normal: 300ms;
+  --animation-duration-slow: 500ms;
+  --animation-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --animation-easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --animation-easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-safe-duration: var(--animation-duration-normal);
+  --animation-safe-distance: 10px;
+}
+
+/* ==========================================================================
+   Performance Optimization Variables
+   GPU acceleration and containment strategies
+   ========================================================================== */
+:root {
+  --animation-containment: content;
+  --animation-will-change: transform, opacity;
+  --animation-transform-style: flat;
+}
+
+/* ==========================================================================
+   Keyframe Definitions
+   GPU-accelerated animations with performance optimizations
+   ========================================================================== */
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateZ(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateZ(0);
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+    transform: translateZ(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateZ(0);
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    transform: translateY(var(--animation-safe-distance));
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  0% {
+    transform: translateY(calc(var(--animation-safe-distance) * -1));
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg) translateZ(0);
+  }
+  100% {
+    transform: rotate(360deg) translateZ(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    transform: scale(1.05) translateZ(0);
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+  }
+}
+
+/* ==========================================================================
+   Animation Utility Classes
+   Reusable animation classes with performance optimizations
+   ========================================================================== */
+
+.animate-fade-in {
+  animation: fade-in var(--animation-duration-normal) var(--animation-easing-default) forwards;
+  will-change: var(--animation-will-change);
+  contain: var(--animation-containment);
+}
+
+.animate-fade-out {
+  animation: fade-out var(--animation-duration-normal) var(--animation-easing-default) forwards;
+  will-change: var(--animation-will-change);
+  contain: var(--animation-containment);
+}
+
+.animate-slide-up {
+  animation: slide-up var(--animation-duration-normal) var(--animation-easing-out) forwards;
+  will-change: var(--animation-will-change);
+  contain: var(--animation-containment);
+  transform-style: var(--animation-transform-style);
+}
+
+.animate-slide-down {
+  animation: slide-down var(--animation-duration-normal) var(--animation-easing-out) forwards;
+  will-change: var(--animation-will-change);
+  contain: var(--animation-containment);
+  transform-style: var(--animation-transform-style);
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+  will-change: transform;
+  transform-style: var(--animation-transform-style);
+}
+
+.animate-pulse {
+  animation: pulse var(--animation-duration-slow) var(--animation-easing-in-out) infinite;
+  will-change: transform;
+  transform-style: var(--animation-transform-style);
+}
+
+/* Animation Delay Utilities */
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-400 { animation-delay: 400ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+
+/* ==========================================================================
+   Accessibility Considerations
+   Respects user preferences for reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-spin {
+    animation: none !important;
+  }
+  
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   Performance Optimizations
+   GPU acceleration and containment strategies for specific components
+   ========================================================================== */
+
+/* Modal animations */
+.modal-overlay {
+  will-change: opacity;
+  contain: strict;
+}
+
+.modal-content {
+  will-change: transform, opacity;
+  contain: content;
+  transform-style: flat;
+}
+
+/* Toast notifications */
+.toast {
+  will-change: transform, opacity;
+  contain: content;
+  transform-style: flat;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  will-change: transform;
+  contain: strict;
+  transform-style: flat;
+}
