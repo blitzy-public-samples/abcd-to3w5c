@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service
+  namespace: habit-tracker
+  labels:
+    app: habit-tracker
+    service: analytics
+    version: 1.0.0
+    tier: backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3002"
+    prometheus.io/path: "/metrics"
+
+spec:
+  # Configure 3 replicas for high availability
+  replicas: 3
+
+  # Rolling update strategy for zero-downtime deployments
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+
+  # Pod selector matching
+  selector:
+    matchLabels:
+      app: habit-tracker
+      service: analytics
+
+  template:
+    metadata:
+      labels:
+        app: habit-tracker
+        service: analytics
+    
+    spec:
+      # Container specifications
+      containers:
+      - name: analytics-service
+        image: analytics-service:latest
+        imagePullPolicy: Always
+        
+        # Expose HTTP and metrics ports
+        ports:
+        - containerPort: 3002
+          protocol: TCP
+          name: http
+        - containerPort: 9090
+          protocol: TCP
+          name: metrics
+
+        # Resource limits and requests optimized for data processing
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+
+        # Environment variables from ConfigMap and Secrets
+        envFrom:
+        - configMapRef:
+            name: habit-tracker-config
+        - secretRef:
+            name: habit-tracker-secrets
+
+        # Comprehensive health probes
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+
+      # Security context for non-root execution
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+
+      # Pod anti-affinity for high availability
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - analytics
+              topologyKey: kubernetes.io/hostname
+
+      # Termination grace period for clean shutdown
+      terminationGracePeriodSeconds: 60
