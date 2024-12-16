@@ -1,0 +1,18 @@
+<svg 
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+  role="img"
+  aria-hidden="true"
+  focusable="false"
+  aria-label="Analytics icon"
+>
+  <!-- Bar chart with trend line design following Material Design principles -->
+  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z" />
+  
+  <!-- Additional data point indicators -->
+  <circle cx="16" cy="6" r="1.5" />
+  <circle cx="13.41" cy="13.17" r="1.5" />
+  <circle cx="9.41" cy="9.17" r="1.5" />
+  <circle cx="3.41" cy="18" r="1.5" />
+</svg>
