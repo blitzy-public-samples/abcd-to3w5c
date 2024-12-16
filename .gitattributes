@@ -1,0 +1,75 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# JavaScript/TypeScript files
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+
+# Configuration and documentation files
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Web styling files
+*.css text eol=lf
+*.scss text eol=lf
+*.less text eol=lf
+
+# Image files as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg binary
+*.ico binary
+*.webp binary
+*.avif binary
+
+# Font files as binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+
+# Protocol Buffer files
+*.proto text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Windows-specific files
+*.bat text eol=crlf
+
+# Media files as binary
+*.mp4 binary
+*.webm binary
+*.mp3 binary
+*.wav binary
+
+# Lock files
+package-lock.json text eol=lf
+yarn.lock text eol=lf
+pnpm-lock.yaml text eol=lf
+
+# Environment and config files
+.env* text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+.dockerignore text eol=lf
+
+# Database files
+*.sql text eol=lf
+
+# Build output and dependencies
+dist/* binary
+build/* binary
+node_modules/* binary
