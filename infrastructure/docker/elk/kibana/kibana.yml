@@ -1,0 +1,122 @@
+# Kibana 8.x Configuration
+# Purpose: Production configuration for habit tracking application's observability platform
+
+#-------------------------- Server Configuration --------------------------
+server.name: "habit-tracker-kibana"
+server.host: "0.0.0.0"
+server.port: 5601
+server.maxPayloadBytes: 1048576
+server.socketTimeout: 120000
+server.compression.enabled: true
+
+#-------------------------- Elasticsearch Configuration --------------------------
+# Connection settings for Elasticsearch cluster
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.username: "${ELASTICSEARCH_USERNAME}"
+elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+elasticsearch.ssl.verificationMode: "certificate"
+elasticsearch.requestTimeout: 30000
+elasticsearch.pingTimeout: 30000
+
+#-------------------------- Monitoring Configuration --------------------------
+# Container and application metrics monitoring settings
+monitoring.ui.container.elasticsearch.enabled: true
+monitoring.ui.container.logstash.enabled: true
+monitoring.ui.min_refresh_interval_ms: 5000
+monitoring.kibana.collection.enabled: true
+monitoring.kibana.collection.interval: 10000
+
+#-------------------------- Security Configuration --------------------------
+# Enhanced security settings with encryption and access controls
+xpack.security.enabled: true
+xpack.encryptedSavedObjects.encryptionKey: "${ENCRYPTION_KEY}"
+xpack.reporting.encryptionKey: "${REPORTING_KEY}"
+xpack.security.encryptionKey: "${SECURITY_KEY}"
+xpack.security.audit.enabled: true
+xpack.security.authc.providers: ["basic", "token"]
+xpack.security.authc.api_key.enabled: true
+
+#-------------------------- Feature Configuration --------------------------
+# X-Pack features and reporting configuration
+xpack.reporting.enabled: true
+xpack.spaces.enabled: true
+
+#-------------------------- Telemetry Configuration --------------------------
+# Disable telemetry for privacy
+telemetry.enabled: false
+
+#-------------------------- Localization Configuration --------------------------
+# Set default locale to English
+i18n.locale: "en"
+
+#-------------------------- Logging Configuration --------------------------
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: json
+  root:
+    appenders: [file]
+    level: info
+
+#-------------------------- Path Configuration --------------------------
+path:
+  data: /var/lib/kibana
+  logs: /var/log/kibana
+
+#-------------------------- Performance Configuration --------------------------
+ops:
+  interval: 5000
+  cGroupOverrides:
+    cpuPath: /proc/self/cgroup
+    cpuAcctPath: /proc/self/cgroup
+
+#-------------------------- Memory Configuration --------------------------
+node:
+  options:
+    max_old_space_size: 1536
+
+#-------------------------- CORS Configuration --------------------------
+server.cors:
+  enabled: true
+  origin: ["http://localhost:3000", "https://*.habit-tracker.com"]
+  credentials: true
+
+#-------------------------- CSP Configuration --------------------------
+csp.rules: ["script-src 'self' 'unsafe-eval' 'unsafe-inline'", "style-src 'self' 'unsafe-inline'"]
+
+#-------------------------- Session Configuration --------------------------
+xpack.security.session:
+  idleTimeout: "1h"
+  lifespan: "24h"
+  cleanupInterval: "1h"
+
+#-------------------------- SSL Configuration --------------------------
+server.ssl:
+  enabled: false  # Should be true in production with proper certificates
+  # certificate: /path/to/certificate.crt
+  # key: /path/to/private.key
+
+#-------------------------- Saved Objects Configuration --------------------------
+savedObjects:
+  maxImportPayloadBytes: 26214400
+  maxImportExportSize: 10000
+
+#-------------------------- Index Pattern Configuration --------------------------
+kibana.index: ".kibana"
+kibana.defaultAppId: "home"
+
+#-------------------------- APM Configuration --------------------------
+xpack.apm.enabled: true
+xpack.apm.ui.enabled: true
+
+#-------------------------- Alerting Configuration --------------------------
+xpack.alerting:
+  enabled: true
+  enableFrameworkAlerts: true
+
+#-------------------------- Dashboard Configuration --------------------------
+xpack.dashboard_mode:
+  enabled: false
