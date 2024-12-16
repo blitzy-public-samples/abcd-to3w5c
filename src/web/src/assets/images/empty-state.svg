@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100%" height="auto" viewBox="0 0 400 400" fill="none" 
+  xmlns="http://www.w3.org/2000/svg" 
+  role="img" 
+  aria-hidden="true"
+  preserveAspectRatio="xMidYMid meet"
+  style="max-width: 400px;">
+  
+  <!-- Defs for reusable elements and theme-aware colors -->
+  <defs>
+    <style>
+      .primary { fill: var(--theme-primary, #6200ee); }
+      .primary-light { fill: var(--theme-primary, #6200ee); opacity: 0.8; }
+      .secondary { fill: var(--theme-secondary, #03dac6); }
+      .secondary-light { fill: var(--theme-secondary, #03dac6); opacity: 0.6; }
+      .background { fill: var(--theme-background, #ffffff); }
+      @media (prefers-color-scheme: dark) {
+        .background { fill: var(--theme-background, #121212); }
+      }
+    </style>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="180" class="background" />
+  
+  <!-- Decorative geometric shapes following Material Design -->
+  <g class="secondary-light">
+    <rect x="120" y="140" width="40" height="40" rx="8" />
+    <rect x="240" y="140" width="40" height="40" rx="8" />
+    <rect x="180" y="220" width="40" height="40" rx="8" />
+  </g>
+  
+  <!-- Primary illustration elements -->
+  <g class="primary">
+    <!-- Stylized empty box -->
+    <path d="M160 180 L240 180 L260 220 L140 220 Z" />
+    <rect x="140" y="220" width="120" height="80" rx="8" />
+  </g>
+  
+  <!-- Secondary details -->
+  <g class="secondary">
+    <!-- Decorative dots -->
+    <circle cx="180" cy="160" r="4" />
+    <circle cx="200" cy="160" r="4" />
+    <circle cx="220" cy="160" r="4" />
+  </g>
+  
+  <!-- Accent lines -->
+  <g class="primary-light" stroke-width="2">
+    <line x1="160" y1="240" x2="240" y2="240" />
+    <line x1="160" y1="260" x2="220" y2="260" />
+  </g>
+
+  <!-- Hidden but accessible title for screen readers -->
+  <title>No items to display</title>
+  
+  <!-- Hidden but accessible description -->
+  <desc>An illustration showing an empty state with geometric shapes and a stylized empty box</desc>
+</svg>
