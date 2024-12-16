@@ -1,0 +1,68 @@
+# Grafana Data Sources Configuration v9.x
+# This file defines connections to monitoring and observability backends
+# including Prometheus for metrics, Elasticsearch for logs, and Jaeger for traces
+
+apiVersion: 1
+
+# Data sources configuration array
+# Each data source is configured with appropriate connection details,
+# authentication, and optimization settings for production use
+datasources:
+  # Prometheus Data Source
+  # Primary metrics backend for system and application metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    version: 1
+    editable: true
+    jsonData:
+      # Scrape and query optimization settings
+      timeInterval: "15s"
+      queryTimeout: "60s"
+      httpMethod: POST
+      # Trace exemplar configuration for metrics to traces correlation
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: jaeger
+
+  # Elasticsearch Data Source
+  # Centralized logging backend for application and system logs
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: logstash-*
+    isDefault: false
+    version: 1
+    editable: true
+    jsonData:
+      # Elasticsearch-specific configuration
+      timeField: "@timestamp"
+      esVersion: "7.x"
+      maxConcurrentShardRequests: 5
+      logMessageField: message
+      logLevelField: level
+      interval: Daily
+      timeInterval: "1m"
+
+  # Jaeger Data Source
+  # Distributed tracing backend for request tracing
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    isDefault: false
+    version: 1
+    editable: true
+    jsonData:
+      # Trace visualization and correlation settings
+      nodeGraph:
+        enabled: true
+      tracesToLogs:
+        datasourceUid: elasticsearch
+        tags: ["service", "error"]
+        mappedTags:
+          - key: service.name
+            value: service
