@@ -1,0 +1,101 @@
+# Elasticsearch 8.x Configuration
+# Purpose: Production configuration for habit tracking application log management
+# Dependencies: elasticsearch 8.x
+
+#------------------------------------------------------------------------------
+# Cluster Settings
+#------------------------------------------------------------------------------
+# Cluster identification and node configuration
+cluster.name: habit-tracker-logs
+node.name: ${HOSTNAME}
+discovery.type: single-node
+
+# Memory and allocation settings
+bootstrap.memory_lock: true
+cluster.routing.allocation.disk.threshold_enabled: true
+cluster.routing.allocation.disk.watermark.low: "85%"
+cluster.routing.allocation.disk.watermark.high: "90%"
+
+#------------------------------------------------------------------------------
+# Network Settings
+#------------------------------------------------------------------------------
+# Network binding and HTTP configuration
+network.host: "0.0.0.0"
+http.port: 9200
+
+# CORS configuration for secure web access
+http.cors.enabled: true
+http.cors.allow-origin: "https://*.habit-tracker.com"
+http.cors.allow-credentials: true
+http.cors.allow-methods: "OPTIONS, HEAD, GET, POST, PUT, DELETE"
+http.cors.allow-headers: "X-Requested-With, Content-Type, Content-Length, Authorization"
+
+#------------------------------------------------------------------------------
+# Path Settings
+#------------------------------------------------------------------------------
+# Data, log, and snapshot storage configuration
+path.data: "/usr/share/elasticsearch/data"
+path.logs: "/usr/share/elasticsearch/logs"
+path.repo: "/usr/share/elasticsearch/snapshots"
+
+#------------------------------------------------------------------------------
+# Security Settings
+#------------------------------------------------------------------------------
+# X-Pack security configuration
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: "certificate"
+xpack.security.transport.ssl.keystore.path: "elastic-certificates.p12"
+xpack.security.transport.ssl.truststore.path: "elastic-certificates.p12"
+
+# Audit and monitoring configuration
+xpack.security.audit.enabled: true
+xpack.monitoring.collection.enabled: true
+xpack.monitoring.collection.interval: "10s"
+
+#------------------------------------------------------------------------------
+# Node Settings
+#------------------------------------------------------------------------------
+# JVM and system configuration
+action.destructive_requires_name: true
+
+# Environment variable reference:
+# ES_JAVA_OPTS="-Xms1g -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/share/elasticsearch/logs/"
+
+#------------------------------------------------------------------------------
+# Index Settings
+#------------------------------------------------------------------------------
+# Default index settings for optimal performance
+index.number_of_shards: 1
+index.number_of_replicas: 0
+index.refresh_interval: "5s"
+
+#------------------------------------------------------------------------------
+# Thread Pool Settings
+#------------------------------------------------------------------------------
+# Optimized thread pools for log processing
+thread_pool.write.size: 4
+thread_pool.write.queue_size: 1000
+
+#------------------------------------------------------------------------------
+# Circuit Breaker Settings
+#------------------------------------------------------------------------------
+# Memory circuit breakers to prevent OOM
+indices.breaker.total.limit: "70%"
+indices.breaker.request.limit: "60%"
+indices.breaker.fielddata.limit: "40%"
+
+#------------------------------------------------------------------------------
+# Recovery Settings
+#------------------------------------------------------------------------------
+# Optimized recovery settings for log indices
+indices.recovery.max_bytes_per_sec: "40mb"
+indices.recovery.concurrent_streams: 2
+
+#------------------------------------------------------------------------------
+# Gateway Settings
+#------------------------------------------------------------------------------
+# Gateway configuration for data persistence
+gateway.expected_nodes: 1
+gateway.recover_after_nodes: 1
+gateway.recover_after_time: "5m"
