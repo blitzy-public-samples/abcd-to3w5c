@@ -1,0 +1,251 @@
+version: '3.8'
+name: habit-tracker-backend
+
+services:
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./src/api-gateway
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Debug port
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - CORS_ORIGIN=http://localhost:3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - HABIT_SERVICE_URL=http://habit-service:3002
+      - ANALYTICS_SERVICE_URL=http://analytics-service:3003
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3004
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      habit-service:
+        condition: service_healthy
+      analytics-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src/api-gateway:/app
+      - /app/node_modules
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./src/auth-service
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - POSTGRES_URL=postgres://postgres:postgres@postgres:5432/habit_tracker
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3001:3001"
+      - "9230:9229"  # Debug port
+    volumes:
+      - ./src/auth-service:/app
+      - /app/node_modules
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
+
+  # Habit Service
+  habit-service:
+    build:
+      context: ./src/habit-service
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - POSTGRES_URL=postgres://postgres:postgres@postgres:5432/habit_tracker
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3002:3002"
+      - "9231:9229"  # Debug port
+    volumes:
+      - ./src/habit-service:/app
+      - /app/node_modules
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ./src/analytics-service
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - POSTGRES_URL=postgres://postgres:postgres@postgres:5432/habit_tracker
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3003:3003"
+      - "9232:9229"  # Debug port
+    volumes:
+      - ./src/analytics-service:/app
+      - /app/node_modules
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./src/notification-service
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - POSTGRES_URL=postgres://postgres:postgres@postgres:5432/habit_tracker
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3004:3004"
+      - "9233:9229"  # Debug port
+    volumes:
+      - ./src/notification-service:/app
+      - /app/node_modules
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 256M
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=habit_tracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  # Redis Cache
+  redis:
+    image: redis:6-alpine
+    command: redis-server --appendonly yes --requirepass redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 256M
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data/postgres
+      o: bind
+    labels:
+      backup: daily
+      retention: 7d
+  redis_data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
+    internal: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+    driver_opts:
+      encrypted: "true"
