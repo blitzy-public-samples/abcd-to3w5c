@@ -1,0 +1,207 @@
+name: API Gateway CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/backend/src/api-gateway/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/backend/src/api-gateway/**'
+
+# Concurrency control to prevent parallel runs on same ref
+concurrency:
+  group: api-gateway-${{ github.ref }}
+  cancel-in-progress: true
+
+# Required permissions for OIDC authentication and security scanning
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  id-token: write
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPOSITORY: habit-tracker/api-gateway
+  NODE_ENV: production
+  MIN_COVERAGE: 90
+  MAX_BUNDLE_SIZE: 300
+  API_RESPONSE_THRESHOLD: 200
+
+jobs:
+  test:
+    name: Test and Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: src/backend/src/api-gateway/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/backend/src/api-gateway
+        run: |
+          npm ci
+          npm audit
+
+      - name: Run ESLint
+        working-directory: src/backend/src/api-gateway
+        run: npm run lint -- --max-warnings 0
+
+      - name: Run unit tests
+        working-directory: src/backend/src/api-gateway
+        run: |
+          npm run test -- --coverage --coverageThreshold='{"global":{"branches":${{ env.MIN_COVERAGE }},"functions":${{ env.MIN_COVERAGE }},"lines":${{ env.MIN_COVERAGE }},"statements":${{ env.MIN_COVERAGE }}}}'
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: src/backend/src/api-gateway/coverage
+
+      - name: Validate bundle size
+        working-directory: src/backend/src/api-gateway
+        run: |
+          npm run build
+          size=$(du -k dist/app.js | cut -f1)
+          if [ $size -gt ${{ env.MAX_BUNDLE_SIZE }} ]; then
+            echo "Bundle size exceeds limit: ${size}KB > ${{ env.MAX_BUNDLE_SIZE }}KB"
+            exit 1
+          fi
+
+  security-scan:
+    name: Security Scanning
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.8.0
+        with:
+          scan-type: 'fs'
+          scan-ref: 'src/backend/src/api-gateway'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy'
+
+      - name: Generate SBOM
+        working-directory: src/backend/src/api-gateway
+        run: |
+          npm install -g @cyclonedx/bom
+          cyclonedx-bom -o sbom.xml
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: src/backend/src/api-gateway/sbom.xml
+
+  build-and-push:
+    name: Build and Push Image
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push image
+        uses: docker/build-push-action@v3
+        with:
+          context: src/backend/src/api-gateway
+          file: src/backend/src/api-gateway/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+          labels: |
+            org.opencontainers.image.source=github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+  deploy:
+    name: Deploy to Production
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: 
+      name: production
+      url: https://api.habit-tracker.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Update deployment image
+        run: |
+          kubectl set image deployment/api-gateway \
+            api-gateway=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
+            -n habit-tracker
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/api-gateway -n habit-tracker --timeout=300s
+
+      - name: Run smoke tests
+        run: |
+          # Wait for service to be ready
+          sleep 30
+          
+          # Test API endpoints
+          ENDPOINT="https://api.habit-tracker.com"
+          
+          # Health check
+          response_time=$(curl -o /dev/null -s -w "%{time_total}\n" $ENDPOINT/health)
+          if (( $(echo "$response_time > ${{ env.API_RESPONSE_THRESHOLD }}/1000" | bc -l) )); then
+            echo "API response time exceeded threshold: ${response_time}s"
+            exit 1
+          fi
+
+      - name: Tag release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git tag v1.0.0-$(date +%Y%m%d)-${{ github.sha }}
+          git push origin v1.0.0-$(date +%Y%m%d)-${{ github.sha }}
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
