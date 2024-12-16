@@ -1,0 +1,54 @@
+Dimensions:
+- Width: 512 pixels
+- Height: 512 pixels
+- Aspect ratio: 1:1 (square)
+
+Image Properties:
+- Format: PNG
+- Color space: RGB
+- Transparency: Enabled
+- Purpose: Supports both 'any' and 'maskable' use cases
+
+Design Requirements:
+1. Safe zone: Keep main content within 96px from edges
+2. Background: Transparent or solid color
+3. Must follow brand guidelines
+4. Must be clear and legible at all sizes
+5. Platform-specific optimizations:
+   - iOS: Square corners support
+   - Android: Rounded corners support, adaptive icons
+   - Windows: Transparency and tile support
+
+Technical Optimization Requirements:
+1. Lossless compression
+2. Metadata removal
+3. Color palette optimization
+4. Progressive loading support
+
+The image should be created using professional design software (e.g., Adobe Photoshop, Sketch, or Figma) and exported with the following settings:
+
+Export Settings:
+1. Format: PNG-24
+2. Transparency: Enabled
+3. Compression: Optimized for web
+4. Color profile: sRGB
+5. Metadata: Minimal required only
+
+Delivery Optimization:
+- Enable compression
+- CDN distribution ready
+- Cache headers:
+  Cache-Control: public, max-age=31536000
+  Content-Type: image/png
+  ETag: [generated value]
+  Last-Modified: [timestamp]
+
+The image must be tested across:
+- Platforms: iOS, Android, Windows, macOS
+- Display sizes: small, medium, large
+- Pixel densities: 1x, 2x, 3x
+
+Performance requirements:
+- Load time: < 200ms
+- Minimal bandwidth impact
+- Cache validation support
