@@ -1,0 +1,92 @@
+# cert-manager.io/v1.9.x
+# Certificate resource for managing TLS certificates for the habit tracking application
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: habit-tracker-certificate
+  namespace: habit-tracker
+  labels:
+    app: habit-tracker
+    environment: production
+    component: security
+  annotations:
+    cert-manager.io/issue-temporary-certificate: "true"
+    cert-manager.io/common-name: "api.habittracker.com"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9402"
+
+spec:
+  # Certificate configuration
+  secretName: habit-tracker-tls
+  duration: 2160h  # 90 days
+  renewBefore: 360h  # 15 days
+  commonName: api.habittracker.com
+  dnsNames:
+    - api.habittracker.com
+  
+  # Issuer reference to production Let's Encrypt
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io
+
+  # Private key configuration
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+    rotationPolicy: Always
+    
+  # Certificate usage
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+    
+  # Subject details
+  subject:
+    organizations:
+      - HabitTracker
+    organizationalUnits:
+      - Security
+    countries:
+      - US
+    provinces:
+      - California
+    localities:
+      - San Francisco
+
+  # Enhanced security configurations
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        name: keystore-password
+        key: password
+
+  # Additional security options
+  options:
+    certSign: false
+    clientAuth: false
+    serverAuth: true
+    usages:
+      - digital signature
+      - key encipherment
+      - server auth
+    isCA: false
+
+  # Certificate transparency logging
+  secretTemplate:
+    annotations:
+      cert-manager.io/certificate-name: "habit-tracker-certificate"
+      cert-manager.io/common-name: "api.habittracker.com"
+      cert-manager.io/issuer-kind: "ClusterIssuer"
+      cert-manager.io/issuer-name: "letsencrypt-prod"
+      cert-manager.io/alt-names: "api.habittracker.com"
+      cert-manager.io/ip-sans: ""
+      cert-manager.io/uri-sans: ""
+    labels:
+      app: habit-tracker
+      security: tls
+      managed-by: cert-manager
+      environment: production
