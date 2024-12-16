@@ -1,0 +1,220 @@
+/* ==========================================================================
+   Theme System - Habit Tracking Web Application
+   Implements WCAG 2.1 Level AA compliant theming with Material Design
+   Version: 1.0.0
+   ========================================================================== */
+
+@import './variables.css';
+
+/* ==========================================================================
+   Theme Base Configuration
+   Establishes core theme behavior and transitions
+   ========================================================================== */
+
+:root {
+  /* System-level theme configuration */
+  color-scheme: light dark;
+  --theme-transition-props: background-color, color, border-color, box-shadow;
+}
+
+/* Theme transition class for smooth theme switching */
+.theme-transition {
+  transition: var(--theme-transition-props) var(--transition-speed-normal) var(--transition-timing);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Light Theme Configuration
+   Default theme with WCAG 2.1 Level AA compliant colors
+   ========================================================================== */
+
+:root,
+.theme-light {
+  /* Primary colors */
+  --primary-color: var(--color-blue-600);
+  --primary-hover: var(--color-blue-700);
+  --primary-active: var(--color-blue-800);
+  
+  /* Secondary colors */
+  --secondary-color: var(--color-purple-600);
+  
+  /* Background colors */
+  --background-color: var(--color-gray-50);
+  --surface-color: var(--color-white);
+  
+  /* Text colors */
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-700);
+  --text-disabled: var(--color-gray-500);
+  
+  /* Status colors */
+  --error-color: var(--color-red-600);
+  --success-color: var(--color-green-600);
+  --warning-color: var(--color-yellow-600);
+  --info-color: var(--color-blue-600);
+  
+  /* Border and focus colors */
+  --border-color: var(--color-gray-200);
+  --focus-ring: var(--color-blue-200);
+  
+  /* Material Design elevation shadows */
+  --shadow-color: 0deg 0% 0%;
+  --shadow-elevation-low: 0px 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-elevation-medium: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-elevation-high: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Dark Theme Configuration
+   Activated via class or system preference
+   ========================================================================== */
+
+.theme-dark,
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light) {
+    /* Primary colors */
+    --primary-color: var(--color-blue-400);
+    --primary-hover: var(--color-blue-300);
+    --primary-active: var(--color-blue-200);
+    
+    /* Secondary colors */
+    --secondary-color: var(--color-purple-400);
+    
+    /* Background colors */
+    --background-color: var(--color-gray-900);
+    --surface-color: var(--color-gray-800);
+    
+    /* Text colors */
+    --text-primary: var(--color-gray-50);
+    --text-secondary: var(--color-gray-300);
+    --text-disabled: var(--color-gray-500);
+    
+    /* Status colors */
+    --error-color: var(--color-red-400);
+    --success-color: var(--color-green-400);
+    --warning-color: var(--color-yellow-400);
+    --info-color: var(--color-blue-400);
+    
+    /* Border and focus colors */
+    --border-color: var(--color-gray-700);
+    --focus-ring: var(--color-blue-700);
+    
+    /* Material Design elevation shadows for dark mode */
+    --shadow-color: 0deg 0% 0%;
+    --shadow-elevation-low: 0px 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-elevation-medium: 0px 4px 6px -1px rgba(0, 0, 0, 0.25);
+    --shadow-elevation-high: 0px 10px 15px -3px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* ==========================================================================
+   Material Design Component Theming
+   Implements atomic design methodology through CSS variables
+   ========================================================================== */
+
+/* Button variants */
+.button {
+  background-color: var(--primary-color);
+  color: var(--color-white);
+  border-radius: var(--border-radius-md);
+  transition: background-color var(--transition-speed-normal) var(--transition-timing);
+}
+
+.button:hover {
+  background-color: var(--primary-hover);
+}
+
+.button:active {
+  background-color: var(--primary-active);
+}
+
+/* Card styling */
+.card {
+  background-color: var(--surface-color);
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-elevation-low);
+}
+
+/* Input fields */
+.input {
+  background-color: var(--surface-color);
+  border: var(--border-width-thin) solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--border-radius-md);
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+}
+
+/* ==========================================================================
+   Accessibility Enhancements
+   Ensures WCAG 2.1 Level AA compliance
+   ========================================================================== */
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  :root,
+  .theme-light,
+  .theme-dark {
+    --primary-color: #000000;
+    --text-primary: #000000;
+    --text-secondary: #000000;
+    --border-color: #000000;
+    --focus-ring: #000000;
+    --shadow-elevation-low: none;
+    --shadow-elevation-medium: none;
+    --shadow-elevation-high: none;
+  }
+}
+
+/* Focus visible polyfill */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -9999px;
+  left: var(--skip-link-left);
+  background: var(--primary-color);
+  color: var(--color-white);
+  padding: var(--spacing-md);
+  z-index: var(--z-index-tooltip);
+}
+
+.skip-link:focus {
+  top: var(--skip-link-top);
+}
+
+/* ==========================================================================
+   Print Styles
+   Optimizes theme for printing
+   ========================================================================== */
+
+@media print {
+  :root {
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --background-color: #ffffff;
+    --surface-color: #ffffff;
+    --border-color: #000000;
+  }
+
+  * {
+    background-color: transparent !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transition: none !important;
+  }
+}
