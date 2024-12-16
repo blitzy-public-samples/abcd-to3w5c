@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./auth";
+option java_package = "com.habittracker.auth";
+option java_multiple_files = true;
+
+// Authentication service providing comprehensive security features
+service AuthService {
+  // Authenticates user with email/password and handles MFA
+  rpc Login(LoginRequest) returns (AuthResponse) {}
+
+  // Registers new user with enhanced security validation
+  rpc Register(RegisterRequest) returns (AuthResponse) {}
+
+  // Refreshes access token with enhanced validation
+  rpc RefreshToken(RefreshTokenRequest) returns (AuthResponse) {}
+
+  // Comprehensive token validation with security context
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse) {}
+}
+
+// Extended enumeration of user roles with system accounts
+enum UserRole {
+  USER = 0;
+  PREMIUM = 1;
+  ADMIN = 2;
+  SYSTEM_ADMIN = 3;
+  SERVICE_ACCOUNT = 4;
+}
+
+// Login request with MFA support
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+  optional string mfa_token = 3;
+  string device_id = 4;
+  DeviceInfo device_info = 5;
+}
+
+// Enhanced registration request with security validations
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string confirm_password = 3;
+  DeviceInfo device_info = 4;
+  bool accepted_terms = 5;
+}
+
+// Token refresh request with device validation
+message RefreshTokenRequest {
+  string refresh_token = 1;
+  string device_id = 2;
+  DeviceInfo device_info = 3;
+}
+
+// Comprehensive token validation request
+message ValidateTokenRequest {
+  string access_token = 1;
+  string device_id = 2;
+  repeated string required_permissions = 3;
+}
+
+// Authentication response with enhanced security features
+message AuthResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int32 expires_in = 3;
+  bool mfa_required = 4;
+  optional string mfa_token = 5;
+  UserProfile user_profile = 6;
+  TokenMetadata token_metadata = 7;
+  SecurityContext security_context = 8;
+}
+
+// Token validation response with security context
+message ValidateTokenResponse {
+  bool valid = 1;
+  string user_id = 2;
+  UserRole role = 3;
+  repeated string permissions = 4;
+  SecurityContext security_context = 5;
+}
+
+// User profile information
+message UserProfile {
+  string id = 1;
+  string email = 2;
+  UserRole role = 3;
+  bool mfa_enabled = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  repeated string permissions = 7;
+}
+
+// Device information for security tracking
+message DeviceInfo {
+  string device_id = 1;
+  string device_type = 2;
+  string browser_info = 3;
+  string ip_address = 4;
+  string user_agent = 5;
+  google.protobuf.Timestamp last_used = 6;
+}
+
+// Enhanced token metadata for security
+message TokenMetadata {
+  string token_id = 1;
+  google.protobuf.Timestamp issued_at = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  string device_id = 4;
+  string issuer = 5;
+  string audience = 6;
+  repeated string scopes = 7;
+}
+
+// Security context for token validation
+message SecurityContext {
+  repeated string permissions = 1;
+  string security_level = 2;
+  bool mfa_enabled = 3;
+  google.protobuf.Timestamp last_authenticated = 4;
+  string session_id = 5;
+  DeviceInfo device_info = 6;
+  repeated string active_tokens = 7;
+}
+
+// Error details for authentication failures
+message AuthError {
+  string code = 1;
+  string message = 2;
+  string details = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
