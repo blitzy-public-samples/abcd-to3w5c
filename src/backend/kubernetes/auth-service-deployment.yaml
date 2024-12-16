@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: habit-tracker
+  labels:
+    app: habit-tracker
+    service: auth
+    version: 1.0.0
+    tier: backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3001"
+    prometheus.io/path: "/metrics"
+    description: "Authentication service deployment for habit tracking system"
+    security.policy/audit-level: "strict"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: habit-tracker
+      service: auth
+  template:
+    metadata:
+      labels:
+        app: habit-tracker
+        service: auth
+        version: 1.0.0
+      annotations:
+        checksum/config: "${CONFIG_CHECKSUM}"  # Triggers pod restart on config changes
+        checksum/secrets: "${SECRETS_CHECKSUM}"  # Triggers pod restart on secret changes
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        readOnlyRootFilesystem: true
+      serviceAccountName: auth-service-sa
+      containers:
+      - name: auth-service
+        image: habit-tracker/auth-service:1.0.0
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        ports:
+        - name: http
+          containerPort: 3001
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: habit-tracker-config
+              key: NODE_ENV
+        - name: AUTH_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: habit-tracker-config
+              key: AUTH_SERVICE_PORT
+        envFrom:
+        - configMapRef:
+            name: habit-tracker-config
+        - secretRef:
+            name: habit-tracker-secrets
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            httpHeaders:
+            - name: X-Probe-Type
+              value: liveness
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+            httpHeaders:
+            - name: X-Probe-Type
+              value: readiness
+          initialDelaySeconds: 15
+          periodSeconds: 15
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+            httpHeaders:
+            - name: X-Probe-Type
+              value: startup
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 30
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: auth-config
+          mountPath: /app/config
+          readOnly: true
+        - name: auth-secrets
+          mountPath: /app/secrets
+          readOnly: true
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: auth-config
+        configMap:
+          name: habit-tracker-config
+      - name: auth-secrets
+        secret:
+          secretName: habit-tracker-secrets
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - auth
+              topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 60
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
