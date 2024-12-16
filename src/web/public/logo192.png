@@ -1,0 +1,55 @@
+Format: PNG (image/png)
+Dimensions: 192x192 pixels
+Safe Zone: 154x154 pixels (centered with 19px offset)
+File Size Target: < 20KB
+
+Design Requirements:
+1. Material Design Style
+- Clean, minimalist habit tracking icon
+- Consistent 2px line weight
+- 4px corner radius for inner elements
+- 16px padding safe area around core icon
+
+2. Color Scheme
+- Primary brand color with light/dark theme support
+- Transparent background with solid fallback
+- Minimum 4.5:1 contrast ratio for accessibility
+
+3. Safe Zone Layout
+- Core icon content: 154x154 pixels
+- Centered within 192x192 frame
+- 19px padding on all sides for maskable icon compliance
+
+4. Platform Optimization
+- Maskable icon support for Android
+- iOS corner radius compatibility
+- Crisp rendering at 16x16 to 192x192
+- 1x, 2x, and 3x resolution support
+
+5. Technical Requirements
+- PNG format with alpha transparency
+- Optimized compression for <20KB file size
+- High DPI support for retina displays
+- Cache-Control: public, max-age=31536000
+
+Accessibility Features:
+- Color-blind friendly design
+- High contrast elements
+- Recognizable at small sizes
+- Clear silhouette for platform masks
+
+Platform Support:
+- Android home screen
+- iOS home screen
+- PWA installation banners
+- Browser favicons
+- App switcher displays
+- Splash screens
+- Search results
+
+Implementation Notes:
+1. Export as optimized PNG with transparency
+2. Test across all platform contexts
+3. Verify maskable icon compliance
+4. Ensure color contrast meets WCAG 2.1 AA
+5. Validate file size optimization
