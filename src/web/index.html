@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Track and maintain positive habits with systematic tracking and data-driven insights" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.habittracker.com; frame-ancestors 'none';" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+
+    <!-- Preconnect to required domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.habittracker.com" crossorigin />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" as="style" />
+    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" />
+
+    <!-- Manifest and icons -->
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./favicon.ico" />
+    <link rel="apple-touch-icon" href="./logo192.png" />
+
+    <!-- Fonts and styles -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+    <title>Habit Tracker</title>
+
+    <!-- Critical CSS -->
+    <style>
+      /* Ensure smooth theme transitions */
+      :root {
+        color-scheme: light dark;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Loading state styles */
+      .initial-loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #ffffff;
+      }
+
+      /* Skip link for accessibility */
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        z-index: 999;
+        padding: 1em;
+        background-color: #ffffff;
+        color: #000000;
+        text-decoration: none;
+      }
+
+      .skip-link:focus {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      /* Hide content during theme changes */
+      .theme-transition * {
+        transition: none !important;
+      }
+
+      /* Offline content styles */
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>
+      <div style="padding: 20px; text-align: center;">
+        You need to enable JavaScript to run this application.
+      </div>
+    </noscript>
+
+    <!-- Skip to main content link -->
+    <a href="#root" class="skip-link">Skip to main content</a>
+
+    <!-- Root element for React -->
+    <div id="root" role="main" aria-label="Main application content"></div>
+
+    <!-- Modal root for React portals -->
+    <div id="modal-root" role="presentation" aria-hidden="true"></div>
+
+    <!-- Offline content -->
+    <div id="offline-content" hidden>
+      <div style="padding: 20px; text-align: center;">
+        You are currently offline. Please check your internet connection.
+      </div>
+    </div>
+
+    <!-- ARIA live regions for announcements -->
+    <div id="notification-live-region" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="error-live-region" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- Service Worker registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./service-worker.js', { scope: '/' })
+            .then(registration => {
+              console.info('ServiceWorker registration successful');
+            })
+            .catch(error => {
+              console.error('ServiceWorker registration failed:', error);
+            });
+        });
+      }
+    </script>
+
+    <!-- Main application script -->
+    <script type="module" src="./src/index.tsx"></script>
+  </body>
+</html>
