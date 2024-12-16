@@ -1,0 +1,176 @@
+/* ==========================================================================
+   Global CSS Variables - Habit Tracking Web Application
+   Supports WCAG 2.1 Level AA compliance, mobile-first design, and fluid typography
+   ========================================================================== */
+
+:root {
+  /* ==========================================================================
+     Spacing Variables
+     Used for consistent spacing and layout throughout the application
+     ========================================================================== */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* ==========================================================================
+     Typography Variables
+     Mobile-first fluid typography with fallback system fonts
+     ========================================================================== */
+  --font-family-primary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-code: 'Source Code Pro', monospace;
+  
+  /* Base font size for calculations */
+  --font-size-base: 16px;
+  
+  /* Fluid typography scales */
+  --font-size-fluid-sm: clamp(0.875rem, 0.875rem + 0.5vw, 1rem);
+  --font-size-fluid-base: clamp(1rem, 1rem + 0.5vw, 1.125rem);
+  --font-size-fluid-lg: clamp(1.125rem, 1.125rem + 0.5vw, 1.25rem);
+  --font-size-fluid-xl: clamp(1.25rem, 1.25rem + 0.5vw, 1.5rem);
+  --font-size-fluid-2xl: clamp(1.5rem, 1.5rem + 0.5vw, 2rem);
+  
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ==========================================================================
+     Color Variables
+     WCAG 2.1 Level AA compliant contrast ratios
+     ========================================================================== */
+  --color-primary: #0066CC;
+  --color-primary-contrast: #FFFFFF;
+  --color-secondary: #4C4C4C;
+  --color-secondary-contrast: #FFFFFF;
+  --color-success: #2E7D32;
+  --color-warning: #ED6C02;
+  --color-error: #D32F2F;
+  --color-background: #FFFFFF;
+  --color-surface: #F5F5F5;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #666666;
+  --color-text-disabled: #9E9E9E;
+  --color-border: #E0E0E0;
+  --color-focus-ring: rgba(0, 102, 204, 0.25);
+
+  /* ==========================================================================
+     Layout Variables
+     Supports F-pattern (desktop) and Z-pattern (mobile) layouts
+     ========================================================================== */
+  --layout-f-pattern-grid: "header header header" "main main sidebar" "footer footer footer";
+  --layout-z-pattern-grid: "header" "main" "sidebar" "footer";
+  --layout-max-width: 1440px;
+  --layout-content-width: min(100% - 2rem, var(--layout-max-width));
+  --layout-hierarchy-1: 2rem;
+  --layout-hierarchy-2: 1.5rem;
+  --layout-hierarchy-3: 1rem;
+
+  /* ==========================================================================
+     Accessibility Variables
+     Ensures WCAG 2.1 Level AA compliance
+     ========================================================================== */
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --skip-link-top: 1rem;
+  --skip-link-left: 1rem;
+  --reduced-motion: var(--motion-safe, transform 0.3s ease);
+  --contrast-high: var(--color-text-primary);
+  --contrast-medium: var(--color-text-secondary);
+  --contrast-low: var(--color-text-disabled);
+
+  /* ==========================================================================
+     Breakpoint Variables
+     Mobile-first responsive design breakpoints
+     ========================================================================== */
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 768px;
+  --breakpoint-md: 1024px;
+  --breakpoint-lg: 1440px;
+
+  /* ==========================================================================
+     Border Variables
+     Consistent border styles across components
+     ========================================================================== */
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 4px;
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 1rem;
+  --border-radius-full: 9999px;
+
+  /* ==========================================================================
+     Shadow Variables
+     Consistent elevation levels
+     ========================================================================== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* ==========================================================================
+     Z-Index Variables
+     Consistent stacking contexts
+     ========================================================================== */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* ==========================================================================
+   Media Query Support Classes
+   Enables responsive design patterns
+   ========================================================================== */
+@media (min-width: 768px) {
+  :root {
+    /* Adjust spacing for tablet and up */
+    --layout-hierarchy-1: 2.5rem;
+    --layout-hierarchy-2: 2rem;
+    --layout-hierarchy-3: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    /* Adjust spacing for desktop */
+    --layout-hierarchy-1: 3rem;
+    --layout-hierarchy-2: 2.5rem;
+    --layout-hierarchy-3: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Prefers Reduced Motion
+   Respects user motion preferences
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --reduced-motion: none;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Mode
+   Enhances accessibility for users with visual impairments
+   ========================================================================== */
+@media (prefers-contrast: high) {
+  :root {
+    --color-text-primary: #000000;
+    --color-text-secondary: #1A1A1A;
+    --color-border: #000000;
+    --color-focus-ring: #000000;
+  }
+}
