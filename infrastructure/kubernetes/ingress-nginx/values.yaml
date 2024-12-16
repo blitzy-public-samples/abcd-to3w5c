@@ -1,0 +1,138 @@
+# NGINX Ingress Controller Helm Values
+# Version: ingress-nginx 4.4.x
+
+controller:
+  # High availability configuration
+  replicaCount: 3
+  minAvailable: 2
+  
+  # Resource allocation
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Horizontal Pod Autoscaling
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+  # Prometheus metrics integration
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: monitoring
+
+  # NGINX configuration
+  config:
+    # Security settings
+    use-forwarded-headers: "true"
+    enable-modsecurity: "true"
+    enable-owasp-core-rules: "true"
+    
+    # SSL/TLS configuration
+    ssl-protocols: "TLSv1.2 TLSv1.3"
+    ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384"
+    ssl-session-tickets: "off"
+    ssl-session-timeout: "10m"
+    
+    # HTTP/2 settings
+    use-http2: "true"
+    http2-max-field-size: "16k"
+    http2-max-header-size: "32k"
+    
+    # Buffer and body size settings
+    proxy-buffer-size: "16k"
+    proxy-body-size: "10m"
+    large-client-header-buffers: "4 8k"
+    
+    # Connection optimization
+    keep-alive: "75"
+    keep-alive-requests: "100"
+    upstream-keepalive-connections: "32"
+    
+    # Timeout settings
+    client-header-timeout: "60s"
+    client-body-timeout: "60s"
+    proxy-connect-timeout: "60s"
+    proxy-read-timeout: "60s"
+    proxy-send-timeout: "60s"
+
+  # Admission webhooks configuration
+  admissionWebhooks:
+    enabled: true
+    failurePolicy: Fail
+    timeoutSeconds: 10
+
+  # Service configuration
+  service:
+    enabled: true
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+
+  # Default SSL certificate
+  extraArgs:
+    default-ssl-certificate: "cert-manager/habit-tracker-tls"
+
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 101
+    runAsUser: 101
+    runAsNonRoot: true
+
+  # Container security context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 101
+
+  # Node affinity and anti-affinity
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - ingress-nginx
+          topologyKey: "kubernetes.io/hostname"
+
+# Default backend configuration
+defaultBackend:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# TCP/UDP service configuration
+tcp: {}
+udp: {}
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Service account configuration
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/ingress-nginx-controller"
