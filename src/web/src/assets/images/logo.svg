@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg 
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 512 512"
+  width="100%"
+  height="100%"
+  preserveAspectRatio="xMidYMid meet"
+  role="img"
+  aria-labelledby="logoTitle logoDesc"
+  class="habit-tracker-logo"
+>
+  <!-- Accessibility Labels -->
+  <title id="logoTitle">Habit Tracker Logo</title>
+  <desc id="logoDesc">A modern, minimalist logo representing the Habit Tracker application's brand identity</desc>
+
+  <!-- Style Definitions -->
+  <style>
+    .habit-tracker-logo {
+      color: currentColor;
+      transition: color 0.2s ease-in-out;
+    }
+    
+    @media (max-width: 767px) {
+      .habit-tracker-logo {
+        max-width: 32px;
+        max-height: 32px;
+        min-width: 24px;
+        min-height: 24px;
+      }
+    }
+    
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .habit-tracker-logo {
+        max-width: 40px;
+        max-height: 40px;
+        min-width: 32px;
+        min-height: 32px;
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .habit-tracker-logo {
+        max-width: 48px;
+        max-height: 48px;
+        min-width: 40px;
+        min-height: 40px;
+      }
+    }
+  </style>
+
+  <!-- Main Logo Shape - Circular Progress Track -->
+  <circle 
+    cx="256" 
+    cy="256" 
+    r="230" 
+    fill="none" 
+    stroke="currentColor" 
+    stroke-width="24" 
+    stroke-opacity="0.2"
+  />
+
+  <!-- Progress Arc - Represents Achievement -->
+  <path 
+    d="M256 26
+       A 230 230 0 1 1 256 486
+       A 230 230 0 1 1 256 26"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="24"
+    stroke-linecap="round"
+    stroke-dasharray="1445"
+    stroke-dashoffset="361"
+  />
+
+  <!-- Checkmark Symbol - Center Element -->
+  <path 
+    d="M160 256
+       L 224 320
+       L 352 192"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="32"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Inner Circle - Background for Checkmark -->
+  <circle 
+    cx="256" 
+    cy="256" 
+    r="120" 
+    fill="none" 
+    stroke="currentColor" 
+    stroke-width="24" 
+    stroke-opacity="0.1"
+  />
+</svg>
