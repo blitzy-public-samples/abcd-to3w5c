@@ -1,0 +1,1 @@
+Create a responsive web app that lets users track daily habits, with data visualization and progress milestones.
