@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package notification;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./notification";
+option java_package = "com.habittracker.notification";
+option java_multiple_files = true;
+option optimize_for = SPEED;
+
+// NotificationType defines all supported notification categories in the system
+enum NotificationType {
+  REMINDER = 0;           // Daily/scheduled habit reminders
+  ACHIEVEMENT = 1;        // Achievement unlocked notifications
+  STREAK_ALERT = 2;       // Streak milestone or warning alerts
+  SYSTEM_ALERT = 3;       // System-level notifications
+  MILESTONE_REACHED = 4;  // User milestone accomplishments
+}
+
+// DeliveryStatus tracks the complete lifecycle of a notification
+enum DeliveryStatus {
+  PENDING = 0;        // Initial state
+  QUEUED = 1;         // Added to delivery queue
+  SENDING = 2;        // Currently being sent
+  SENT = 3;          // Successfully sent
+  DELIVERED = 4;      // Confirmed delivery
+  FAILED = 5;         // Delivery failed
+  RETRY_PENDING = 6;  // Scheduled for retry
+}
+
+// ReminderFrequency defines available scheduling options for reminders
+enum ReminderFrequency {
+  DAILY = 0;    // Every day
+  WEEKLY = 1;   // Once per week
+  CUSTOM = 2;   // Custom schedule defined in metadata
+  WEEKDAY = 3;  // Monday through Friday
+  WEEKEND = 4;  // Saturday and Sunday
+  MONTHLY = 5;  // Once per month
+}
+
+// Notification represents a complete notification entity with full tracking capabilities
+message Notification {
+  string id = 1;                                    // Unique notification identifier
+  string user_id = 2;                              // Target user identifier
+  NotificationType type = 3;                       // Type of notification
+  string title = 4;                                // Notification title
+  string message = 5;                              // Notification content
+  map<string, string> metadata = 6;                // Additional contextual data
+  DeliveryStatus status = 7;                       // Current delivery status
+  int32 retry_count = 8;                           // Number of delivery attempts
+  string error_message = 9;                        // Last error message if failed
+  google.protobuf.Timestamp scheduled_for = 10;    // Scheduled delivery time
+  google.protobuf.Timestamp sent_at = 11;          // Time notification was sent
+  google.protobuf.Timestamp delivered_at = 12;     // Time notification was delivered
+  google.protobuf.Timestamp created_at = 13;       // Creation timestamp
+  google.protobuf.Timestamp updated_at = 14;       // Last update timestamp
+}
+
+// Reminder represents a habit reminder with advanced scheduling capabilities
+message Reminder {
+  string id = 1;                                   // Unique reminder identifier
+  string user_id = 2;                              // User identifier
+  string habit_id = 3;                             // Associated habit identifier
+  google.protobuf.Timestamp reminder_time = 4;     // Base reminder time
+  ReminderFrequency frequency = 5;                 // Reminder frequency
+  bool is_active = 6;                              // Reminder active status
+  map<string, string> custom_schedule = 7;         // Custom scheduling rules
+  int32 priority_level = 8;                        // Reminder priority (1-5)
+  google.protobuf.Timestamp last_triggered = 9;    // Last trigger timestamp
+  google.protobuf.Timestamp next_trigger = 10;     // Next scheduled trigger
+  int32 consecutive_failures = 11;                 // Failed delivery count
+}
+
+// Request to create a new notification
+message CreateNotificationRequest {
+  string user_id = 1;                              // Target user
+  NotificationType type = 2;                       // Notification type
+  string title = 3;                                // Notification title
+  string message = 4;                              // Notification content
+  map<string, string> metadata = 5;                // Additional metadata
+  google.protobuf.Timestamp scheduled_for = 6;     // Optional scheduled time
+}
+
+// Response for notification creation
+message CreateNotificationResponse {
+  string notification_id = 1;                      // Created notification ID
+  DeliveryStatus status = 2;                       // Initial delivery status
+  google.protobuf.Timestamp scheduled_for = 3;     // Confirmed schedule time
+}
+
+// Request to check notification status
+message GetNotificationStatusRequest {
+  string notification_id = 1;                      // Target notification ID
+}
+
+// Response with notification status details
+message GetNotificationStatusResponse {
+  string notification_id = 1;                      // Notification ID
+  DeliveryStatus status = 2;                       // Current status
+  int32 retry_count = 3;                           // Retry attempts
+  string error_message = 4;                        // Last error if any
+  google.protobuf.Timestamp sent_at = 5;           // Send timestamp
+  google.protobuf.Timestamp delivered_at = 6;      // Delivery timestamp
+}
+
+// Request for batch notification creation
+message BatchCreateNotificationRequest {
+  repeated CreateNotificationRequest notifications = 1;  // Batch of notifications
+}
+
+// Response for batch notification creation
+message BatchCreateNotificationResponse {
+  message Result {
+    string notification_id = 1;                    // Created notification ID
+    DeliveryStatus status = 2;                     // Initial status
+    string error_message = 3;                      // Error if creation failed
+  }
+  repeated Result results = 1;                     // Results for each notification
+}
+
+// NotificationService provides comprehensive notification management capabilities
+service NotificationService {
+  // CreateNotification creates and queues a new notification
+  rpc CreateNotification(CreateNotificationRequest) returns (CreateNotificationResponse) {}
+  
+  // GetNotificationStatus retrieves current status of a notification
+  rpc GetNotificationStatus(GetNotificationStatusRequest) returns (GetNotificationStatusResponse) {}
+  
+  // BatchCreateNotifications efficiently creates multiple notifications
+  rpc BatchCreateNotifications(BatchCreateNotificationRequest) returns (BatchCreateNotificationResponse) {}
+}
