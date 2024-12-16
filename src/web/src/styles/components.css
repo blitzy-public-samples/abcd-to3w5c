@@ -1,0 +1,220 @@
+/* ==========================================================================
+   Component Styles - Habit Tracking Web Application
+   Version: 1.0.0
+   Implements Material Design principles and atomic design methodology
+   WCAG 2.1 Level AA compliant
+   ========================================================================== */
+
+@import './variables.css';
+@import './theme.css';
+
+/* ==========================================================================
+   Base Component Styles
+   Implements atomic design principles with accessibility enhancements
+   ========================================================================== */
+
+/* Button Components
+   Touch-optimized with enhanced focus states
+   ========================================================================== */
+.button {
+  /* Base styles */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--component-touch-target);
+  min-width: var(--component-touch-target);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-fluid-base);
+  line-height: var(--line-height-normal);
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: var(--component-transition);
+  position: relative;
+  touch-action: manipulation;
+  
+  /* Accessibility */
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Input Components
+   Enhanced for accessibility and validation states
+   ========================================================================== */
+.input {
+  width: 100%;
+  min-height: var(--component-touch-target);
+  padding: var(--spacing-md);
+  border: var(--border-width-thin) solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-fluid-base);
+  line-height: var(--line-height-normal);
+  transition: var(--component-transition);
+}
+
+.input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+}
+
+.input:invalid {
+  border-color: var(--error-color);
+}
+
+.input::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+/* Card Components
+   Material Design elevation with enhanced hierarchy
+   ========================================================================== */
+.card {
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+  contain: content;
+  transition: var(--component-transition);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Modal Components
+   Accessible focus management and keyboard interaction
+   ========================================================================== */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-index-modal);
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: var(--spacing-xl);
+  max-height: 90vh;
+  max-width: 90vw;
+  width: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-index-modal-backdrop);
+}
+
+/* Form Components
+   Enhanced accessibility and validation feedback
+   ========================================================================== */
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.form-helper {
+  display: block;
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-fluid-sm);
+  color: var(--text-secondary);
+}
+
+.form-error {
+  color: var(--error-color);
+  font-size: var(--font-size-fluid-sm);
+  margin-top: var(--spacing-xs);
+}
+
+/* ==========================================================================
+   Responsive Enhancements
+   Mobile-first approach with progressive enhancement
+   ========================================================================== */
+
+@media (min-width: var(--breakpoint-sm)) {
+  .card {
+    padding: var(--spacing-xl);
+  }
+
+  .modal {
+    max-width: 600px;
+  }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .button {
+    padding: var(--spacing-md) var(--spacing-xl);
+  }
+
+  .modal {
+    max-width: 800px;
+  }
+}
+
+/* ==========================================================================
+   Print Styles
+   Optimized for readability
+   ========================================================================== */
+
+@media print {
+  .button,
+  .modal,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none;
+    border: var(--border-width-thin) solid var(--border-color);
+  }
+
+  .input {
+    border: var(--border-width-thin) solid var(--border-color);
+    background: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   Respects user preferences
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .input,
+  .card,
+  .modal {
+    transition: none;
+  }
+}
