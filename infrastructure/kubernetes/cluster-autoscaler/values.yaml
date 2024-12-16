@@ -1,0 +1,157 @@
+# Cluster Autoscaler Helm Values Configuration
+# Version: 1.24.0
+# Purpose: Production-grade configuration for automatic scaling of Kubernetes worker nodes
+
+# Main cluster-autoscaler configuration
+cluster-autoscaler:
+  enabled: true
+
+  # Image configuration
+  image:
+    repository: k8s.gcr.io/autoscaling/cluster-autoscaler
+    tag: v1.24.0
+    pullPolicy: IfNotPresent
+
+  # Resource allocation for the autoscaler pod
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 300m
+      memory: 500Mi
+
+  # Node selection and tolerations for scheduling
+  nodeSelector:
+    kubernetes.io/os: linux
+    kubernetes.io/arch: amd64
+
+  tolerations:
+    - key: node-role.kubernetes.io/master
+      effect: NoSchedule
+
+  # AWS Auto-discovery configuration
+  autoDiscovery:
+    enabled: true
+    clusterName: habit-tracker-cluster
+    tags:
+      - k8s.io/cluster-autoscaler/enabled
+      - k8s.io/cluster-autoscaler/habit-tracker-cluster
+
+  # AWS region configuration
+  awsRegion: us-west-2
+
+  # Autoscaler behavior configuration
+  extraArgs:
+    # Scale down configuration
+    scale-down-delay-after-add: "10m"
+    scale-down-unneeded-time: "10m"
+    max-node-provision-time: "15m"
+    
+    # Scanning and scaling parameters
+    scan-interval: "10s"
+    max-nodes-total: "10"
+    
+    # Resource limits
+    cores-total: "0:320"
+    memory-total: "0:1280Gi"
+    
+    # Logging verbosity
+    v: "4"
+
+  # Prometheus ServiceMonitor configuration
+  serviceMonitor:
+    enabled: true
+    interval: "10s"
+
+  # High availability configuration
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  # Prioritization and scheduling
+  priorityClassName: "system-cluster-critical"
+
+  # Pod security configuration
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    fsGroup: 65534
+
+  # Security context for the container
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  # Prometheus metrics configuration
+  prometheus:
+    serviceMonitor:
+      enabled: true
+      namespace: monitoring
+      interval: "10s"
+      scrapeTimeout: "5s"
+      metricRelabelings: []
+      relabelings: []
+
+  # Affinity rules for pod scheduling
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - cluster-autoscaler
+            topologyKey: kubernetes.io/hostname
+
+  # Liveness probe configuration
+  livenessProbe:
+    httpGet:
+      path: /health-check
+      port: 8085
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+  # Readiness probe configuration
+  readinessProbe:
+    httpGet:
+      path: /health-check
+      port: 8085
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+  # Service account configuration
+  rbac:
+    create: true
+    serviceAccount:
+      create: true
+      annotations:
+        eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/cluster-autoscaler"
+
+  # Extra environment variables
+  extraEnv:
+    - name: AWS_STS_REGIONAL_ENDPOINTS
+      value: "regional"
+    - name: KUBERNETES_CLUSTER_NAME
+      value: "habit-tracker-cluster"
+
+  # Additional volume mounts
+  extraVolumeMounts:
+    - name: ssl-certs
+      mountPath: /etc/ssl/certs/ca-certificates.crt
+      readOnly: true
+
+  # Additional volumes
+  extraVolumes:
+    - name: ssl-certs
+      hostPath:
+        path: /etc/ssl/certs/ca-certificates.crt
+        type: File
