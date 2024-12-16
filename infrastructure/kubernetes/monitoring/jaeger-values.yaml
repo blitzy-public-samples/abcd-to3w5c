@@ -1,0 +1,173 @@
+# Jaeger Helm Chart Values Configuration
+# Version: 1.45.x
+# Purpose: Distributed tracing configuration for habit tracking application
+
+# Global Jaeger configuration
+jaeger:
+  enabled: true
+
+  # Image configuration
+  image:
+    repository: jaegertracing/all-in-one
+    tag: "1.45"
+    pullPolicy: IfNotPresent
+
+  # Persistence configuration for trace storage
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: gp2
+    annotations:
+      backup.velero.io/backup-volumes: data
+
+  # Service configuration for different Jaeger components
+  service:
+    type: ClusterIP
+    ports:
+      - name: query
+        port: 16686
+        targetPort: 16686
+      - name: collector
+        port: 14250
+        targetPort: 14250
+      - name: agent
+        port: 6831
+        targetPort: 6831
+        protocol: UDP
+
+  # Ingress configuration for Jaeger UI access
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    hosts:
+      - jaeger.habit-tracker.com
+    tls:
+      - secretName: jaeger-tls
+        hosts:
+          - jaeger.habit-tracker.com
+
+  # Resource allocation for Jaeger components
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  # Agent configuration
+  agent:
+    enabled: true
+    strategy: DaemonSet
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "14271"
+    config:
+      reporter:
+        grpc:
+          host-port: "jaeger-collector:14250"
+      sampling:
+        strategies:
+          - service: habit-tracking-api
+            type: probabilistic
+            param: 1.0
+          - service: habit-tracking-frontend
+            type: probabilistic
+            param: 0.5
+
+  # Collector configuration
+  collector:
+    enabled: true
+    replicaCount: 1
+    autoscaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPUUtilizationPercentage: 80
+    config:
+      sampling:
+        default:
+          type: probabilistic
+          param: 0.1
+      queue:
+        max-size: 100000
+      retention:
+        local:
+          enabled: true
+          schedule: "0 0 * * *"
+          duration: 7d
+
+  # Query configuration
+  query:
+    enabled: true
+    replicaCount: 1
+    serviceAccount:
+      create: true
+      annotations: {}
+    config:
+      query:
+        base-path: /jaeger
+      dependencies:
+        enabled: true
+        schedule: "0 */12 * * *"
+
+  # Storage configuration
+  storage:
+    type: elasticsearch
+    options:
+      es:
+        server-urls: http://elasticsearch:9200
+        index-prefix: jaeger
+        username: elastic
+        password: ${ELASTIC_PASSWORD}
+    elasticsearch:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+
+  # Security configuration
+  security:
+    enabled: true
+    authentication:
+      enabled: true
+      type: oauth
+      oauth:
+        clientId: jaeger-ui
+        clientSecret: ${OAUTH_CLIENT_SECRET}
+        issuer: https://auth.habit-tracker.com
+        audience: jaeger
+
+  # Monitoring configuration
+  monitoring:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+
+  # Additional environment variables
+  env:
+    - name: SPAN_STORAGE_TYPE
+      value: elasticsearch
+    - name: ES_SERVER_URLS
+      value: http://elasticsearch:9200
+    - name: ES_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: elastic-credentials
+          key: username
+    - name: ES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elastic-credentials
+          key: password
