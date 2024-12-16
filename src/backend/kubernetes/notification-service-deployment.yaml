@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: default
+  labels:
+    app: habit-tracker
+    service: notification
+    version: 1.0.0
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3003"
+    prometheus.io/path: "/metrics"
+    kubernetes.io/description: "Notification service for handling email notifications, achievement alerts, and habit reminders"
+    deployment.kubernetes.io/revision: "1"
+
+spec:
+  # High availability with 3 replicas
+  replicas: 3
+  
+  # Zero-downtime deployment strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  
+  # Pod selector for service matching
+  selector:
+    matchLabels:
+      app: habit-tracker
+      service: notification
+  
+  template:
+    metadata:
+      labels:
+        app: habit-tracker
+        service: notification
+        version: 1.0.0
+      annotations:
+        checksum/config: "${CONFIG_CHECKSUM}"  # Will be replaced by deployment tool
+    
+    spec:
+      # Pod distribution and scheduling
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - notification
+              topologyKey: kubernetes.io/hostname
+      
+      # Security context for the pod
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      
+      # Container specifications
+      containers:
+      - name: notification-service
+        image: notification-service:latest
+        imagePullPolicy: Always
+        
+        # Container ports
+        ports:
+        - name: http
+          containerPort: 3003
+          protocol: TCP
+        
+        # Resource limits and requests
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        
+        # Environment variables from ConfigMap and Secrets
+        envFrom:
+        - configMapRef:
+            name: notification-service-config
+        - secretRef:
+            name: notification-service-secrets
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: http
+          failureThreshold: 30
+          periodSeconds: 10
+        
+        # Security context for the container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        
+        # Volume mounts for temporary data
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: notification-templates
+          mountPath: /app/templates
+          readOnly: true
+      
+      # Volumes definition
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: notification-templates
+        configMap:
+          name: notification-templates-config
+      
+      # Pod termination grace period
+      terminationGracePeriodSeconds: 60
+      
+      # Service account for the pod
+      serviceAccountName: notification-service-sa
