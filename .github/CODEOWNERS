@@ -1,0 +1,36 @@
+# The pattern format follows gitignore style syntax and is case-sensitive.
+# Order is important - the last matching pattern takes precedence.
+
+# Global owners - Project leads have review capabilities across all files
+* @project-leads
+
+# Frontend Application
+src/web/* @frontend-team
+
+# Backend Services - Core services
+src/backend/* @backend-team
+
+# Specific Backend Services with additional review requirements
+src/backend/src/analytics-service/* @analytics-team @backend-team
+src/backend/src/auth-service/* @security-team @backend-team
+src/backend/src/habit-service/* @backend-team
+src/backend/src/notification-service/* @backend-team
+
+# Infrastructure and DevOps
+infrastructure/* @devops-team
+infrastructure/terraform/* @devops-team  # Requires 2 reviewers per security rules
+.github/workflows/* @devops-team
+
+# Documentation
+docs/* @project-leads @backend-team @frontend-team
+
+# Security-sensitive areas requiring multiple reviewers
+# Auth service changes require security team review
+src/backend/src/auth-service/* @security-team @backend-team  # Requires 2 reviewers per security rules
+
+# Infrastructure as Code requires multiple DevOps reviewers
+infrastructure/terraform/* @devops-team  # Requires 2 reviewers per security rules
+infrastructure/kubernetes/* @devops-team
+
+# Configuration files at repository root
+/*.* @project-leads
