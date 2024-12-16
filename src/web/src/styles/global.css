@@ -1,0 +1,231 @@
+/* ==========================================================================
+   Global Styles - Habit Tracking Web Application
+   Version: 1.0.0
+   Implements WCAG 2.1 Level AA compliance, responsive design, and accessibility
+   ========================================================================== */
+
+/* Import required stylesheets */
+@import 'normalize.css'; /* v8.0.1 - CSS reset and normalization */
+@import './variables.css';
+@import './theme.css';
+@import './typography.css';
+
+/* ==========================================================================
+   Base Styles
+   Core styling reset and foundational rules
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base);
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-primary);
+  line-height: var(--line-height-normal);
+  color: var(--text-color);
+  background-color: var(--background-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   Accessibility Enhancements
+   WCAG 2.1 Level AA compliance features
+   ========================================================================== */
+:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--focus-ring-color);
+  transition: outline-offset 0.2s ease;
+}
+
+/* Visually hidden but accessible to screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Layout Containers
+   Implements F-pattern (desktop) and Z-pattern (mobile) layouts
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: var(--breakpoint-lg);
+  margin: 0 auto;
+  padding: 0 var(--spacing-sm);
+}
+
+@media (min-width: var(--breakpoint-sm)) {
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .container {
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .container {
+    padding: 0 var(--spacing-xl);
+  }
+}
+
+/* ==========================================================================
+   Flexbox Utilities
+   Enhanced layout patterns with responsive behavior
+   ========================================================================== */
+.flex {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .flex-row-md {
+    flex-direction: row;
+  }
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Scrollbar Styling
+   Custom scrollbar for better visual integration
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track-color);
+  border-radius: var(--border-radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-color);
+  border-radius: var(--border-radius-full);
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-color);
+}
+
+/* ==========================================================================
+   Media Queries
+   Responsive design breakpoints and adjustments
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+  }
+}
+
+@media print {
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+  
+  @page {
+    margin: 2cm;
+  }
+}
+
+/* ==========================================================================
+   Utility Classes
+   Common helper classes for layout and spacing
+   ========================================================================== */
+.full-width {
+  width: 100%;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Focus Management
+   Enhanced keyboard navigation and focus states
+   ========================================================================== */
+[tabindex="-1"] {
+  outline: none !important;
+}
+
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
