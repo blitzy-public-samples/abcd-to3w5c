@@ -1,0 +1,270 @@
+/* ==========================================================================
+   Typography Stylesheet - Habit Tracking Web Application
+   Implements Material Design typography system with WCAG 2.1 Level AA compliance
+   Supports fluid typography and responsive text scaling
+   ========================================================================== */
+
+@import './variables.css';
+
+/* ==========================================================================
+   Base Typography Settings
+   Sets foundational typography rules for the application
+   ========================================================================== */
+html {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-size: var(--font-size-fluid-base);
+  color: var(--color-text-primary);
+  text-rendering: optimizeLegibility;
+}
+
+/* ==========================================================================
+   Heading Styles
+   Implements responsive heading scale with proper hierarchy
+   ========================================================================== */
+h1, .h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-lg);
+  letter-spacing: -0.025em;
+}
+
+h2, .h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-md);
+  letter-spacing: -0.025em;
+}
+
+h3, .h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-md);
+}
+
+h4, .h4 {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-sm);
+}
+
+h5, .h5 {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-sm);
+}
+
+h6, .h6 {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ==========================================================================
+   Body Text Styles
+   Implements readable text styles with proper spacing and line lengths
+   ========================================================================== */
+p, .text-body {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-md);
+  max-width: 75ch;
+}
+
+.text-small {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.text-xs {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+.text-large {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+}
+
+.text-xl {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-relaxed);
+}
+
+.text-2xl {
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+}
+
+/* ==========================================================================
+   Typography Utilities
+   Common text styling utilities for flexibility
+   ========================================================================== */
+.text-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.text-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.text-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-justify {
+  text-align: justify;
+  hyphens: auto;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-wrap {
+  white-space: normal;
+}
+
+.text-nowrap {
+  white-space: nowrap;
+}
+
+.text-break {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+.text-lowercase {
+  text-transform: lowercase;
+}
+
+/* ==========================================================================
+   Accessibility Utilities
+   Enhances text readability and WCAG compliance
+   ========================================================================== */
+.text-high-contrast {
+  color: var(--color-text-high-contrast);
+}
+
+.text-readable {
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+}
+
+.text-spacing {
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+
+.text-antialiased {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Responsive Typography
+   Adjusts typography for different screen sizes
+   ========================================================================== */
+@media (min-width: var(--breakpoint-sm)) {
+  html {
+    font-size: calc(var(--font-size-base) * 1.1);
+  }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  html {
+    font-size: calc(var(--font-size-base) * 1.2);
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  html {
+    font-size: calc(var(--font-size-base) * 1.25);
+  }
+}
+
+/* ==========================================================================
+   Print Styles
+   Optimizes typography for printed pages
+   ========================================================================== */
+@media print {
+  html {
+    font-size: 12pt;
+  }
+
+  body {
+    line-height: 1.5;
+  }
+
+  h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  p, .text-body {
+    orphans: 3;
+    widows: 3;
+  }
+}
+
+/* ==========================================================================
+   High Contrast & Reduced Motion
+   Accessibility accommodations
+   ========================================================================== */
+@media (prefers-contrast: high) {
+  body {
+    text-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
