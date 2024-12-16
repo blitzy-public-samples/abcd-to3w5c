@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+package habit.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+
+// Frequency type enum defining valid habit frequency options
+enum FrequencyType {
+  // Ensure first enum value is zero as per proto3 spec
+  FREQUENCY_TYPE_UNSPECIFIED = 0;
+  FREQUENCY_TYPE_DAILY = 1;
+  FREQUENCY_TYPE_WEEKLY = 2;
+  FREQUENCY_TYPE_MONTHLY = 3;
+  FREQUENCY_TYPE_CUSTOM = 4;
+}
+
+// Days of the week enum for custom frequency scheduling
+enum WeekDay {
+  WEEK_DAY_UNSPECIFIED = 0;
+  WEEK_DAY_MONDAY = 1;
+  WEEK_DAY_TUESDAY = 2;
+  WEEK_DAY_WEDNESDAY = 3;
+  WEEK_DAY_THURSDAY = 4;
+  WEEK_DAY_FRIDAY = 5;
+  WEEK_DAY_SATURDAY = 6;
+  WEEK_DAY_SUNDAY = 7;
+}
+
+// Frequency configuration for habits with validation rules
+message HabitFrequency {
+  FrequencyType type = 1;
+  int32 value = 2; // Range: 1-31
+  repeated WeekDay days = 3; // Required when type is CUSTOM
+}
+
+// Main habit entity message
+message Habit {
+  string id = 1; // UUID format
+  string user_id = 2 [(encrypted) = true];
+  string name = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100,
+    pattern: "^[\\w\\s-]+$"
+  }];
+  string description = 4 [(validate.rules).string = {
+    max_len: 500
+  }];
+  HabitFrequency frequency = 5;
+  google.protobuf.Timestamp reminder_time = 6 [(encrypted) = true];
+  bool is_active = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  string created_by = 10;
+  string updated_by = 11;
+}
+
+// Request message for habit creation
+message CreateHabitRequest {
+  string user_id = 1 [(encrypted) = true];
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100,
+    pattern: "^[\\w\\s-]+$"
+  }];
+  string description = 3 [(validate.rules).string = {
+    max_len: 500
+  }];
+  HabitFrequency frequency = 4;
+  google.protobuf.Timestamp reminder_time = 5 [(encrypted) = true];
+}
+
+// Request message for retrieving a habit
+message GetHabitRequest {
+  string id = 1; // UUID format
+  string user_id = 2 [(encrypted) = true];
+}
+
+// Request message for retrieving habits by user
+message GetHabitsByUserRequest {
+  string user_id = 1 [(encrypted) = true];
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+// Response message for habit list
+message GetHabitsByUserResponse {
+  repeated Habit habits = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+// Request message for updating a habit
+message UpdateHabitRequest {
+  Habit habit = 1;
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// Request message for deleting a habit
+message DeleteHabitRequest {
+  string id = 1;
+  string user_id = 2 [(encrypted) = true];
+}
+
+// Service definition for habit management
+service HabitService {
+  // Creates a new habit with validation and security
+  rpc CreateHabit(CreateHabitRequest) returns (Habit) {
+    option (google.api.http) = {
+      post: "/v1/habits"
+      body: "*"
+    };
+    option (auth.required) = true;
+    option (ratelimit.limit) = {
+      requests_per_minute: 100
+    };
+    option (timeout) = "5s";
+    option (retry_policy) = {
+      initial_backoff: "0.1s"
+      max_backoff: "5s"
+      max_attempts: 3
+    };
+  }
+
+  // Retrieves a single habit by ID
+  rpc GetHabit(GetHabitRequest) returns (Habit) {
+    option (google.api.http) = {
+      get: "/v1/habits/{id}"
+    };
+    option (auth.required) = true;
+    option (ratelimit.limit) = {
+      requests_per_minute: 300
+    };
+    option (timeout) = "3s";
+    option (retry_policy) = {
+      initial_backoff: "0.1s"
+      max_backoff: "3s"
+      max_attempts: 2
+    };
+  }
+
+  // Retrieves habits for a user with pagination
+  rpc GetHabitsByUser(GetHabitsByUserRequest) returns (GetHabitsByUserResponse) {
+    option (google.api.http) = {
+      get: "/v1/habits"
+    };
+    option (auth.required) = true;
+    option (ratelimit.limit) = {
+      requests_per_minute: 300
+    };
+    option (timeout) = "3s";
+  }
+
+  // Updates an existing habit with field masking
+  rpc UpdateHabit(UpdateHabitRequest) returns (Habit) {
+    option (google.api.http) = {
+      patch: "/v1/habits/{habit.id}"
+      body: "*"
+    };
+    option (auth.required) = true;
+    option (ratelimit.limit) = {
+      requests_per_minute: 100
+    };
+    option (timeout) = "5s";
+  }
+
+  // Deletes a habit
+  rpc DeleteHabit(DeleteHabitRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/habits/{id}"
+    };
+    option (auth.required) = true;
+    option (ratelimit.limit) = {
+      requests_per_minute: 100
+    };
+    option (timeout) = "5s";
+  }
+}
+
+// Custom options for monitoring
+option (monitoring) = {
+  metrics: ["request_duration", "error_count", "active_requests"]
+  tracing: {
+    enabled: true
+    sample_rate: 0.1
+  }
+};
