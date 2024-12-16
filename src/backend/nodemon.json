@@ -1,0 +1,28 @@
+{
+  "watch": [
+    "src/analytics-service/src",
+    "src/api-gateway/src", 
+    "src/auth-service/src",
+    "src/habit-service/src",
+    "src/notification-service/src",
+    "src/shared",
+    "src/proto"
+  ],
+  "ext": ".ts,.js,.json,.proto",
+  "ignore": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "node_modules",
+    "dist",
+    "coverage",
+    ".git"
+  ],
+  "exec": "ts-node -r tsconfig-paths/register",
+  "verbose": true,
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 1000,
+  "legacyWatch": false
+}
