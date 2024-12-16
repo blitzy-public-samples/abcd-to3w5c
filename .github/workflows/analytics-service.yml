@@ -1,0 +1,192 @@
+name: Analytics Service CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/backend/src/analytics-service/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'src/backend/src/analytics-service/**'
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPOSITORY: analytics-service
+  EKS_CLUSTER: habit-tracking-cluster
+  NODE_VERSION: '18.x'
+  PERFORMANCE_THRESHOLD_API: 200
+  MAX_BUNDLE_SIZE: 300
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  security-events: write
+
+concurrency:
+  group: analytics-service-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/backend/src/analytics-service/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/backend/src/analytics-service
+        run: npm ci
+
+      - name: Run dependency audit
+        working-directory: src/backend/src/analytics-service
+        run: npm audit
+
+      - name: Scan container image
+        uses: aquasecurity/trivy-action@0.10.0
+        with:
+          image-ref: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload security results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+
+  build-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/backend/src/analytics-service/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/backend/src/analytics-service
+        run: npm ci
+
+      - name: Run linting
+        working-directory: src/backend/src/analytics-service
+        run: npm run lint
+
+      - name: Run unit tests
+        working-directory: src/backend/src/analytics-service
+        run: npm run test:cov
+
+      - name: Run integration tests
+        working-directory: src/backend/src/analytics-service
+        run: npm run test:e2e
+
+      - name: Build TypeScript
+        working-directory: src/backend/src/analytics-service
+        run: npm run build
+
+      - name: Check bundle size
+        working-directory: src/backend/src/analytics-service
+        run: |
+          BUNDLE_SIZE=$(du -sk dist | cut -f1)
+          if [ $BUNDLE_SIZE -gt ${{ env.MAX_BUNDLE_SIZE }} ]; then
+            echo "Bundle size ($BUNDLE_SIZE KB) exceeds maximum allowed size (${{ env.MAX_BUNDLE_SIZE }} KB)"
+            exit 1
+          fi
+
+  deploy-development:
+    name: Deploy to Development
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: development
+      url: https://dev-api.habit-tracking.com
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        working-directory: src/backend/src/analytics-service
+        run: |
+          docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+          docker push ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Deploy to EKS
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+          kubectl apply -f kubernetes/analytics-service-deployment.yaml
+          kubectl apply -f kubernetes/analytics-service-service.yaml
+          kubectl set image deployment/analytics-service analytics-service=${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/analytics-service -n development
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging-api.habit-tracking.com
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      # Similar deployment steps as development, but for staging environment
+
+  deploy-production:
+    name: Deploy to Production
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://api.habit-tracking.com
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      # Similar deployment steps as staging, but with additional safeguards
+
+  notify:
+    name: Send Notifications
+    needs: [deploy-development, deploy-staging, deploy-production]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
