@@ -1,0 +1,179 @@
+name: Auth Service CI/CD
+
+# Trigger workflow on push/PR to main branch
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/backend/src/auth-service/**'
+      - '.github/workflows/auth-service.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/backend/src/auth-service/**'
+      - '.github/workflows/auth-service.yml'
+
+# Concurrency group to cancel in-progress runs
+concurrency:
+  group: auth-service-${{ github.ref }}
+  cancel-in-progress: true
+
+# Environment variables
+env:
+  NODE_VERSION: '18.x'
+  AWS_REGION: 'us-west-2'
+  IMAGE_TAG: ${{ github.sha }}
+  SERVICE_NAME: 'auth-service'
+  DOCKER_BUILDKIT: '1'
+
+# Required permissions
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  security-events: write
+
+jobs:
+  test:
+    name: Test & Quality Gates
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/backend/src/auth-service/package.json
+
+      - name: Install dependencies
+        working-directory: src/backend/src/auth-service
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: src/backend/src/auth-service
+        run: npm run lint
+        
+      - name: Run unit tests
+        working-directory: src/backend/src/auth-service
+        run: npm run test
+        
+      - name: Run integration tests
+        working-directory: src/backend/src/auth-service
+        run: npm run test:e2e
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@v3
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Run npm audit
+        working-directory: src/backend/src/auth-service
+        run: npm audit --audit-level=high
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: src/backend/src/auth-service/coverage
+
+  build:
+    name: Build & Scan Image
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push image
+        uses: docker/build-push-action@v3
+        with:
+          context: src/backend/src/auth-service
+          file: src/backend/src/auth-service/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.ECR_REGISTRY }}/${{ env.SERVICE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ secrets.ECR_REGISTRY }}/${{ env.SERVICE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+
+      - name: Run Snyk container scan
+        uses: snyk/actions/docker@v3
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ secrets.ECR_REGISTRY }}/${{ env.SERVICE_NAME }}:${{ env.IMAGE_TAG }}
+          args: --severity-threshold=high
+
+  deploy:
+    name: Deploy to Production
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy canary
+        run: |
+          aws eks update-kubeconfig --name habit-tracker-prod
+          kubectl set image deployment/auth-service-canary \
+            auth-service=${{ secrets.ECR_REGISTRY }}/${{ env.SERVICE_NAME }}:${{ env.IMAGE_TAG }} \
+            --record
+
+      - name: Wait for canary health
+        run: |
+          kubectl rollout status deployment/auth-service-canary -n production --timeout=5m
+
+      - name: Monitor metrics
+        run: |
+          # Monitor error rates and latency for 5 minutes
+          sleep 300
+
+      - name: Complete rollout
+        if: success()
+        run: |
+          kubectl set image deployment/auth-service \
+            auth-service=${{ secrets.ECR_REGISTRY }}/${{ env.SERVICE_NAME }}:${{ env.IMAGE_TAG }} \
+            --record
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/auth-service -n production --timeout=5m
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          kubectl rollout undo deployment/auth-service-canary -n production
+          kubectl rollout undo deployment/auth-service -n production
+
+      - name: Tag release
+        if: success()
+        run: |
+          aws ecr put-image --repository-name ${{ env.SERVICE_NAME }} \
+            --image-tag stable \
+            --image-manifest $(aws ecr batch-get-image --repository-name ${{ env.SERVICE_NAME }} --image-ids imageTag=${{ env.IMAGE_TAG }} --query 'images[].imageManifest' --output text)
