@@ -1,0 +1,65 @@
+# cert-manager.io/v1.9.x
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  annotations:
+    # Enable monitoring and logging
+    cert-manager.io/logs-enabled: "true"
+    cert-manager.io/events-enabled: "true"
+  labels:
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/instance: cert-manager
+    app.kubernetes.io/component: cluster-issuer
+    app.kubernetes.io/part-of: habit-tracker
+    app.kubernetes.io/managed-by: kubectl
+spec:
+  # Use Let's Encrypt production server for real certificates
+  acme:
+    # Production ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email for important notifications about certificates
+    email: admin@habit-tracker.com
+    # Reference to secret that will store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    # Configure HTTP-01 challenge solver
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+            # Pod security context for solver pods
+            podTemplate:
+              spec:
+                securityContext:
+                  runAsNonRoot: true
+                  seccompProfile:
+                    type: RuntimeDefault
+                  fsGroup: 1001
+                  runAsUser: 1001
+                # Resource limits for solver pods
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+                # Pod anti-affinity for high availability
+                affinity:
+                  podAntiAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                      - weight: 100
+                        podAffinityTerm:
+                          labelSelector:
+                            matchExpressions:
+                              - key: acme.cert-manager.io/http01-solver
+                                operator: Exists
+                          topologyKey: kubernetes.io/hostname
+                # Tolerations for solver pods
+                tolerations:
+                  - key: "CriticalAddonsOnly"
+                    operator: "Exists"
+                  - key: "node-role.kubernetes.io/master"
+                    operator: "Exists"
+                    effect: "NoSchedule"
