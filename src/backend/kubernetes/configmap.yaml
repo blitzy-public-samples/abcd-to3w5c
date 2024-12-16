@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: habit-tracker-config
+  namespace: default
+  labels:
+    app: habit-tracker
+    environment: production
+    version: 1.0.0
+    component: configuration
+    managed-by: kubectl
+  annotations:
+    description: "Production configuration for habit tracking application"
+    lastUpdated: "2024-01-01T00:00:00Z"
+    prometheus.io/scrape: "true"
+    kubernetes.io/config-version: "1"
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  API_VERSION: "v1"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  ENABLE_SWAGGER: "true"
+  METRICS_ENABLED: "true"
+
+  # Service Ports Configuration
+  API_GATEWAY_PORT: "3000"
+  AUTH_SERVICE_PORT: "3001"
+  HABIT_SERVICE_PORT: "3002"
+  ANALYTICS_SERVICE_PORT: "3003"
+  NOTIFICATION_SERVICE_PORT: "3004"
+  HEALTH_CHECK_PORT: "9000"
+
+  # CORS Configuration
+  CORS_ORIGIN: "https://*.habit-tracker.com"
+  CORS_METHODS: "GET,POST,PUT,DELETE,OPTIONS"
+  CORS_HEADERS: "Content-Type,Authorization,X-Requested-With"
+  CORS_MAX_AGE: "86400"
+  CORS_CREDENTIALS: "true"
+
+  # Rate Limiting Configuration
+  RATE_LIMIT_WINDOW: "60000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  RATE_LIMIT_STRATEGY: "sliding-window"
+  API_RATE_LIMIT: "100/minute"
+  AUTH_RATE_LIMIT: "50/minute"
+
+  # Cache Configuration
+  REDIS_DB: "0"
+  REDIS_KEY_PREFIX: "prod"
+  CACHE_TTL: "3600"
+  CACHE_STRATEGY: "write-through"
+  CACHE_MAX_ITEMS: "10000"
+
+  # Database Connection Pool Configuration
+  DB_MIN_POOL: "10"
+  DB_MAX_POOL: "50"
+  DB_IDLE_TIMEOUT: "30000"
+  DB_ACQUIRE_TIMEOUT: "60000"
+  DB_STATEMENT_TIMEOUT: "30000"
+
+  # Service Discovery and Communication
+  SERVICE_REGISTRY_ENABLED: "true"
+  SERVICE_HEALTH_CHECK_INTERVAL: "30"
+  RETRY_ATTEMPTS: "3"
+  CIRCUIT_BREAKER_TIMEOUT: "5000"
+
+  # Monitoring and Metrics
+  METRICS_INTERVAL: "60"
+  METRICS_PATH: "/metrics"
+  HEALTH_CHECK_PATH: "/health"
+  READINESS_PATH: "/ready"
+  LIVENESS_PATH: "/live"
+
+  # Feature Flags
+  ENABLE_ANALYTICS: "true"
+  ENABLE_NOTIFICATIONS: "true"
+  ENABLE_RATE_LIMITING: "true"
+  ENABLE_CACHE: "true"
+  ENABLE_CIRCUIT_BREAKER: "true"
+
+  # API Documentation
+  SWAGGER_PATH: "/api-docs"
+  SWAGGER_TITLE: "Habit Tracker API"
+  SWAGGER_VERSION: "1.0.0"
+  SWAGGER_DESCRIPTION: "API documentation for Habit Tracking System"
+
+  # Performance Tuning
+  REQUEST_TIMEOUT: "30000"
+  KEEP_ALIVE_TIMEOUT: "5000"
+  COMPRESSION_ENABLED: "true"
+  BODY_PARSER_LIMIT: "1mb"
+  JSON_PARSER_LIMIT: "1mb"
+
+  # Logging Configuration
+  LOG_MAX_SIZE: "10m"
+  LOG_MAX_FILES: "5"
+  LOG_RETENTION_DAYS: "30"
+  TRACE_ID_HEADER: "X-Trace-ID"
+  REQUEST_ID_HEADER: "X-Request-ID"
