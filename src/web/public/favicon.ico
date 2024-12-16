@@ -1,0 +1,50 @@
+This is a multi-resolution ICO file containing the following image sizes:
+- 64x64 pixels (for high DPI displays and PWA)
+- 32x32 pixels (for standard browser tabs)
+- 24x24 pixels (for Windows taskbar)
+- 16x16 pixels (for browser favorites)
+
+File Format: ICO (Windows Icon)
+Total File Size: ≤ 10KB
+Color Depth: 32-bit (RGBA)
+
+Design Specifications:
+1. Primary Color: #000000 (Black)
+2. Background Color: #FFFFFF (White)
+3. Contrast Ratio: 4.5:1 (WCAG 2.1 Level AA compliant)
+
+The icon design should be:
+- A simple, bold "H" representing "Habits"
+- Clean geometric shapes
+- Sharp edges for clarity at small sizes
+- Consistent stroke width
+- High contrast for visibility
+
+Optimization Parameters:
+- Format: Compressed ICO
+- Compression: Enabled
+- Cache-Control: public, max-age=31536000
+
+Browser Support:
+- Chrome (last 2 versions)
+- Firefox (last 2 versions)
+- Safari (last 2 versions)
+- Edge (last 2 versions)
+
+Usage Contexts:
+1. Browser Tab (16x16, 32x32)
+2. Bookmarks Bar (16x16)
+3. PWA Installation (64x64)
+4. Windows Taskbar (24x24)
+
+Accessibility Features:
+- 4.5:1 minimum contrast ratio
+- Recognizable shape without color dependency
+- Maintains clarity across all sizes
+- High contrast mode support
+
+Performance Optimization:
+- Maximum file size: 10KB
+- Compressed ICO format
+- Aggressive caching enabled
+- Preloaded via HTML link tag
