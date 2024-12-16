@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package analytics;
+
+import "google/protobuf/timestamp.proto";
+
+// Analytics service providing comprehensive habit tracking analytics and data visualization
+service AnalyticsService {
+  // Retrieves comprehensive analytics data for a specific habit
+  rpc GetHabitAnalytics(HabitAnalyticsRequest) returns (HabitAnalyticsResponse) {}
+  
+  // Retrieves aggregated analytics across all habits for a user
+  rpc GetUserAnalytics(UserAnalyticsRequest) returns (UserAnalyticsResponse) {}
+  
+  // Generates optimized heatmap visualization data with streaming support
+  rpc GetHeatmapData(HeatmapRequest) returns (stream HeatmapResponse) {}
+  
+  // Calculates detailed trend analysis with statistical indicators
+  rpc GetTrends(TrendRequest) returns (TrendResponse) {}
+}
+
+// Time granularity options for analytics aggregation
+enum TimeGranularity {
+  DAILY = 0;
+  WEEKLY = 1;
+  MONTHLY = 2;
+  YEARLY = 3;
+}
+
+// Timeframe specification for analytics queries
+message Timeframe {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+  TimeGranularity granularity = 3;
+}
+
+// Request for habit-specific analytics
+message HabitAnalyticsRequest {
+  string habit_id = 1;
+  Timeframe timeframe = 2;
+}
+
+// Comprehensive habit analytics response
+message HabitAnalyticsResponse {
+  string habit_id = 1;
+  double completion_rate = 2;
+  int32 current_streak = 3;
+  int32 longest_streak = 4;
+  int32 total_completions = 5;
+  map<string, double> weekly_progress = 6;
+  map<string, double> monthly_progress = 7;
+  repeated CompletionEntry completion_history = 8;
+}
+
+// Individual completion entry for detailed tracking
+message CompletionEntry {
+  google.protobuf.Timestamp timestamp = 1;
+  bool completed = 2;
+  string notes = 3;
+}
+
+// Request for user-level analytics
+message UserAnalyticsRequest {
+  string user_id = 1;
+  Timeframe timeframe = 2;
+}
+
+// Comprehensive user analytics response
+message UserAnalyticsResponse {
+  string user_id = 1;
+  int32 total_habits = 2;
+  int32 active_habits = 3;
+  double overall_completion_rate = 4;
+  repeated Achievement achievements = 5;
+  repeated AnalyticsTrend trends = 6;
+  HabitSummary habit_summary = 7;
+}
+
+// Achievement tracking for user engagement
+message Achievement {
+  string achievement_id = 1;
+  string title = 2;
+  string description = 3;
+  double progress = 4;
+  bool completed = 5;
+  google.protobuf.Timestamp completion_date = 6;
+}
+
+// Trend analysis with statistical indicators
+message AnalyticsTrend {
+  string trend_id = 1;
+  string metric_name = 2;
+  double current_value = 3;
+  double previous_value = 4;
+  double percent_change = 5;
+  double confidence_level = 6;
+  TrendDirection direction = 7;
+}
+
+// Direction indicator for trends
+enum TrendDirection {
+  STABLE = 0;
+  IMPROVING = 1;
+  DECLINING = 2;
+}
+
+// Summary of habits for user analytics
+message HabitSummary {
+  int32 total_active = 1;
+  int32 total_completed = 2;
+  int32 total_archived = 3;
+  map<string, int32> category_distribution = 4;
+}
+
+// Request for heatmap visualization
+message HeatmapRequest {
+  repeated string habit_ids = 1;
+  Timeframe timeframe = 2;
+  bool include_metadata = 3;
+}
+
+// Streamed heatmap response for efficient visualization
+message HeatmapResponse {
+  string habit_id = 1;
+  map<string, double> completion_data = 2;
+  HeatmapMetadata metadata = 3;
+}
+
+// Additional metadata for heatmap visualization
+message HeatmapMetadata {
+  double max_value = 1;
+  double min_value = 2;
+  double average_value = 3;
+  int32 total_days = 4;
+}
+
+// Request for trend analysis
+message TrendRequest {
+  repeated string metric_ids = 1;
+  Timeframe timeframe = 2;
+  double confidence_threshold = 3;
+}
+
+// Comprehensive trend analysis response
+message TrendResponse {
+  repeated AnalyticsTrend trends = 1;
+  map<string, double> correlation_matrix = 2;
+  repeated Anomaly anomalies = 3;
+}
+
+// Anomaly detection in trend analysis
+message Anomaly {
+  string metric_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  double expected_value = 3;
+  double actual_value = 4;
+  double deviation_score = 5;
+}
