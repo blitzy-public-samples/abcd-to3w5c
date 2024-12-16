@@ -1,0 +1,90 @@
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Build outputs
+dist
+build
+*.map
+coverage
+
+# TypeScript specific
+*.test.ts
+*.spec.ts
+tsconfig*.json
+
+# Development configurations
+.env*
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# IDE specific
+.idea
+.vscode
+*.swp
+*.swo
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+CHANGELOG
+LICENSE
+
+# Docker related
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Test directories
+test
+__tests__
+**/*.test.ts
+**/*.spec.ts
+jest.config.js
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.log
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Debug files
+.debug
+*.log
+logs
+
+# Cache directories
+.cache
+.npm
+.yarn
+
+# Microservices specific exclusions
+**/node_modules
+**/dist
+**/coverage
+**/.env*
+
+# Development tools
+.husky
+.lint-staged
+.prettier*
+.eslint*
+
+# Miscellaneous
+*.csv
+*.dat
+*.gz
+*.tar
+*.zip
+*.bak
