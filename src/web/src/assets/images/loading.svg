@@ -1,0 +1,43 @@
+<svg 
+  viewBox="0 0 24 24" 
+  width="24" 
+  height="24" 
+  role="progressbar"
+  aria-label="Loading..."
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-busy="true"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <style>
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    circle {
+      animation: spin 1s linear infinite;
+      transform-origin: center;
+      stroke: var(--spinner-color, currentColor);
+      stroke-width: var(--spinner-thickness, 2px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      circle {
+        animation-duration: 1.5s;
+      }
+    }
+  </style>
+
+  <circle 
+    cx="12"
+    cy="12"
+    r="10"
+    fill="none"
+    stroke-linecap="round"
+  />
+</svg>
