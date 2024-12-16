@@ -1,0 +1,105 @@
+# ExternalDNS Helm Chart Values
+# Chart Version: 6.x
+# Provider: AWS Route53
+
+## AWS Provider Configuration
+provider: aws
+aws:
+  region: us-west-2
+  zoneType: public
+  # Role ARN for cross-account access if needed
+  assumeRoleArn: ""
+  # Maximum number of changes that can be submitted in one batch
+  batchChangeSize: 1000
+
+## General Configuration
+# Sync interval for DNS records
+interval: "1m"
+# Log verbosity level
+logLevel: "info"
+# Filter domains that ExternalDNS manages
+domainFilters:
+  - "habit-tracker.com"
+# Sync policy (sync, upsert-only)
+policy: "sync"
+# Registry for storing ExternalDNS state
+registry: "txt"
+# Unique identifier for this ExternalDNS instance
+txtOwnerId: "habit-tracker"
+
+## RBAC Configuration
+rbac:
+  create: true
+  serviceAccount:
+    create: true
+    annotations:
+      # AWS IAM role annotation for service account
+      eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/external-dns"
+
+## Resource Management
+resources:
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+
+## Metrics Configuration
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: "monitoring"
+
+## Sources Configuration
+sources:
+  - ingress
+  - service
+
+## Kubernetes Configuration
+nameOverride: ""
+fullnameOverride: "external-dns"
+
+## Pod Configuration
+podAnnotations: {}
+podLabels: {}
+priorityClassName: ""
+securityContext:
+  fsGroup: 65534
+  runAsNonRoot: true
+  runAsUser: 65534
+
+## High Availability Configuration
+replicaCount: 1
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - external-dns
+          topologyKey: kubernetes.io/hostname
+
+## Tolerations for node scheduling
+tolerations: []
+
+## Node selector for pod assignment
+nodeSelector: {}
+
+## Extra environment variables
+extraEnv: []
+
+## Extra arguments
+extraArgs: []
+
+## Service configuration for metrics
+service:
+  annotations: {}
+  labels: {}
+  port: 7979
+  type: ClusterIP
