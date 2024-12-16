@@ -1,0 +1,124 @@
+# Metrics Server Configuration for Habit Tracking Application
+# Version: 0.6.3
+# Kubernetes Version Compatibility: 1.24.x+
+
+metrics-server:
+  # Enable metrics-server deployment
+  enabled: true
+
+  image:
+    repository: k8s.gcr.io/metrics-server/metrics-server
+    tag: v0.6.3
+    pullPolicy: IfNotPresent
+
+  # Command line arguments for metrics-server
+  args:
+    # Prefer internal IP for kubelet connection
+    - --kubelet-preferred-address-types=InternalIP
+    # Enforce TLS verification for secure metrics collection
+    - --kubelet-insecure-tls=false
+    # Set metrics collection interval to 15 seconds for balanced performance
+    - --metric-resolution=15s
+    # Use cluster CA for kubelet certificate verification
+    - --kubelet-certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+  # Resource allocation based on cluster requirements
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      cpu: 200m
+      memory: 300Mi
+
+  # RBAC configuration
+  rbac:
+    # Create necessary RBAC rules
+    create: true
+    # Disable Pod Security Policy as it's deprecated in newer K8s versions
+    pspEnabled: false
+
+  # API Service configuration
+  apiService:
+    # Create the API service automatically
+    create: true
+    # Enforce TLS verification
+    insecureSkipTLSVerify: false
+    # Use cluster CA bundle for API service
+    caBundle: ${CA_BUNDLE}
+
+  # Network configuration
+  hostNetwork:
+    # Disable host network access for better security
+    enabled: false
+
+  # Pod security context
+  podSecurityContext:
+    # Run as non-root user for security
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 2000
+
+  # Prometheus ServiceMonitor configuration
+  serviceMonitor:
+    # Enable Prometheus monitoring
+    enabled: true
+    # Scrape interval aligned with metric resolution
+    interval: 30s
+
+  # Additional security configurations
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  # Affinity and anti-affinity rules
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                  - linux
+
+  # Pod disruption budget for high availability
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  # Metrics server service configuration
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8443"
+    ports:
+      - name: https
+        port: 443
+        targetPort: 8443
+        protocol: TCP
+
+  # Readiness and liveness probes
+  readinessProbe:
+    httpGet:
+      path: /readyz
+      port: https
+      scheme: HTTPS
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 2
+
+  livenessProbe:
+    httpGet:
+      path: /livez
+      port: https
+      scheme: HTTPS
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 2
+
+  # Priority class for metrics-server pods
+  priorityClassName: system-cluster-critical
